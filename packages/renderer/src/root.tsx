@@ -5,8 +5,8 @@ export function Root() {
 
   return (
     <div className="h-full bg-gray-50">
-      <div className="h-full flex justify-center items-center">
-        <div className="w-sm flex flex-col items-center gap-3 p-5 bg-white border">
+      <div className="h-full flex justify-center items-center p-2">
+        <div className="w-sm max-w-full flex flex-col items-center gap-3 p-5 bg-white border">
           <div>Counter = {count}</div>
           <button
             className="w-full bg-gray-600 hover:bg-gray-700 text-white border"
