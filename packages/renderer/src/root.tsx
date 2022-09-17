@@ -2,6 +2,7 @@ import { PlusCircleIcon, XCircleIcon } from "@heroicons/react/24/outline";
 import {
   CheckCircleIcon,
   ExclamationTriangleIcon,
+  MinusCircleIcon,
   SunIcon,
 } from "@heroicons/react/24/solid";
 
@@ -24,6 +25,11 @@ export function Root() {
           command="alsa_in -d hw:2"
           status="error"
         />
+        <CommandItemComponent
+          name="alsa in"
+          command="alsa_in -d hw:3"
+          status="idle"
+        />
         <button className="self-center" onClick={() => {}}>
           <PlusCircleIcon className="w-8 h-8 text-gray-600" />
         </button>
@@ -32,7 +38,7 @@ export function Root() {
   );
 }
 
-type CommandStatus = "success" | "error" | "running";
+type CommandStatus = "success" | "error" | "running" | "idle";
 
 function CommandItemComponent(props: {
   name: string;
@@ -55,6 +61,9 @@ function CommandItemComponent(props: {
       )}
       {props.status === "running" && (
         <SunIcon className="w-5 h-5 text-green-500" />
+      )}
+      {props.status === "idle" && (
+        <MinusCircleIcon className="w-5 h-5 text-gray-400" />
       )}
       <input
         className="px-1 border w-[120px]"
