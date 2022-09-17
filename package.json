@@ -7,7 +7,7 @@
     "main:dev": "npm -C packages/main run -s dev",
     "renderer:dev": "npm -C packages/renderer run -s dev",
     "build": "pnpm run -r build",
-    "package": "electron-builder build --linux AppImage",
+    "package": "electron-builder build",
     "tsc": "tsc -b packages/main packages/renderer",
     "tsc:dev": "npm run tsc -- --watch --preserveWatchOutput",
     "lint": "run-s prettier eslint",
