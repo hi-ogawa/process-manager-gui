@@ -20,3 +20,4 @@ npm run package
 - [x] preload script
 - [x] package application
 - [ ] write as vite plugin using vavite multibuild https://github.com/cyco130/vavite
+- [ ] read electron blink shell implementation https://github.com/electron/electron/tree/main/shell
