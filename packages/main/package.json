@@ -1,0 +1,17 @@
+{
+  "scripts": {
+    "dev": "run-p esbuild:main:dev esbuild:preload:dev electron:dev",
+    "electron:dev": "APP_RENDERER_URL=http://127.0.0.1:18181 APP_PRELOAD_SCRIPT=./build/index-preload.cjs nodemon --exec 'electron ./build/index.cjs' --watch ./build/index.cjs --watch ./build/index-preload.cjs",
+    "esbuild:main": "esbuild src/index.ts --outfile=build/index.cjs --bundle --platform=node --external:electron",
+    "esbuild:main:dev": "npm run esbuild:main -- --watch",
+    "esbuild:preload": "esbuild src/index-preload.ts --outfile=build/index-preload.cjs --bundle --platform=node --external:electron",
+    "esbuild:preload:dev": "npm run esbuild:preload -- --watch"
+  },
+  "devDependencies": {
+    "@tsconfig/node16-strictest": "^1.0.3",
+    "@types/node": "^16",
+    "electron": "^20.1.4",
+    "esbuild": "^0.15.7",
+    "nodemon": "^2.0.20"
+  }
+}
