@@ -1,5 +1,6 @@
 import fs from "fs";
 import path from "path";
+import { Config, IPC_SERVICE_ENDPOINTS, IpcServiceApi } from "@-/common";
 import { BrowserWindow, Menu, app, ipcMain } from "electron";
 
 // TODO: open config file directly in editor from menu?
@@ -19,14 +20,29 @@ async function main() {
 }
 
 function setupIpc() {
-  ipcMain.handle("/config/get", async () => {
+  const serviceApi = new IpcServiceApiImpl();
+  for (const endpoint of IPC_SERVICE_ENDPOINTS) {
+    ipcMain.handle(endpoint, (_event, ...args: any[]) =>
+      (serviceApi[endpoint] as any)(...args)
+    );
+  }
+}
+
+class IpcServiceApiImpl implements IpcServiceApi {
+  ["/config/get"] = async () => {
     const config = await fs.promises.readFile(CONFIG_PATH, "utf-8");
     return JSON.parse(config);
-  });
+  };
 
-  ipcMain.handle("/config/update", async (_event, config: any) => {
+  ["/config/update"] = async (config: Config) => {
     await fs.promises.writeFile(CONFIG_PATH, JSON.stringify(config, null, 2));
-  });
+  };
+
+  ["/process/start"] = async () => 0 as any;
+
+  ["/process/stop"] = async () => 0 as any;
+
+  ["/status/get"] = async () => 0 as any;
 }
 
 async function ensureConfig() {
