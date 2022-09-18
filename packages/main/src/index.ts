@@ -5,7 +5,7 @@ import { BrowserWindow, Menu, app, ipcMain } from "electron";
 // TODO: open config file directly in editor from menu?
 const CONFIG_PATH = path.resolve(app.getPath("userData"), "config.json");
 
-const PRELOAD_SCRIPT = path.resolve(__dirname, "index-preload.cjs");
+const PRELOAD_JS_PATH = path.resolve(__dirname, "index-preload.cjs");
 
 const RENDERER_URL =
   process.env["APP_RENDERER_URL"] ??
@@ -38,7 +38,7 @@ async function ensureConfig() {
 async function createWindow() {
   const window = new BrowserWindow({
     webPreferences: {
-      preload: PRELOAD_SCRIPT,
+      preload: PRELOAD_JS_PATH,
     },
   });
   window.webContents.once("dom-ready", () => {

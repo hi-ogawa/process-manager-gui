@@ -4,5 +4,6 @@
   "compilerOptions": {
     "noEmit": true,
     "types": ["@types/node"]
-  }
+  },
+  "references": [{ "path": "../common" }]
 }
