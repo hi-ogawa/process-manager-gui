@@ -2,7 +2,10 @@
   "extends": "@tsconfig/node16-strictest",
   "include": ["src"],
   "compilerOptions": {
-    "lib": ["ES2021", "dom"],
+    "module": "esnext",
+    "target": "es2021",
+    "lib": ["es2021", "dom"],
+    "types": ["vite/types/importMeta"],
     "noEmit": true,
     "jsx": "react-jsx"
   }
