@@ -1,3 +1,17 @@
+import {
+  DndContext,
+  PointerSensor,
+  closestCenter,
+  useSensor,
+  useSensors,
+} from "@dnd-kit/core";
+import { restrictToVerticalAxis } from "@dnd-kit/modifiers";
+import {
+  SortableContext,
+  arrayMove,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
 import { Transition } from "@headlessui/react";
 import { PlusCircleIcon, XCircleIcon } from "@heroicons/react/24/outline";
 import {
@@ -52,7 +66,6 @@ function App() {
   // form
   //
 
-  // TODO: sortable https://docs.dndkit.com/presets/sortable
   const form = useForm<Config>({ defaultValues: { commands: [] } });
   const commandsForm = useFieldArray({
     control: form.control,
@@ -99,15 +112,46 @@ function App() {
     <div className="relative h-full bg-gray-50">
       <div className="h-full overflow-y-auto">
         <div className="flex flex-col items-center gap-2 m-4">
-          {commandsForm.fields.map((field, i) => (
-            <CommandItemEditor
-              key={field.id}
-              command={field}
-              status={"success"}
-              register={(key) => form.register(`commands.${i}.${key}`)}
-              onDelete={() => commandsForm.remove(i)}
-            />
-          ))}
+          <DndContext
+            sensors={useSensors(useSensor(PointerSensor))}
+            collisionDetection={closestCenter}
+            modifiers={[restrictToVerticalAxis]}
+            onDragEnd={(e) => {
+              const { over, active } = e;
+              const { fields } = commandsForm;
+              if (over && active.id !== over.id) {
+                const from = fields.findIndex(({ id }) => id === active.id);
+                const to = fields.findIndex(({ id }) => id === over.id);
+                console.log({ from, to });
+                if (from === -1 || to === -1) {
+                  window.alert("invalid order");
+                  return;
+                }
+                // TODO: investigate why `commandsForm.move(from, to)` doesn't work
+                form.setValue("commands", arrayMove(fields, from, to), {
+                  shouldDirty: true,
+                });
+                return;
+              }
+              // reset fields so that the dropped element can snap back to its original position
+              form.setValue("commands", fields);
+            }}
+          >
+            <SortableContext
+              items={commandsForm.fields.map((field) => field.id)}
+              strategy={verticalListSortingStrategy}
+            >
+              {commandsForm.fields.map((field, i) => (
+                <CommandItemEditor
+                  key={field.id}
+                  command={field}
+                  status={"success"}
+                  register={(key) => form.register(`commands.${i}.${key}`)}
+                  onDelete={() => commandsForm.remove(i)}
+                />
+              ))}
+            </SortableContext>
+          </DndContext>
           <button
             onClick={() => {
               commandsForm.append({ id: generateId(), name: "", command: "" });
@@ -160,20 +204,34 @@ function CommandItemEditor(props: {
   register: (key: "name" | "command") => UseFormRegisterReturn<string>;
   onDelete: () => void;
 }) {
+  const { listeners, setNodeRef, transform, transition } = useSortable({
+    id: props.command.id,
+  });
+
   return (
-    <div className="w-full flex items-center gap-2 p-2 border bg-white">
-      {props.status === "success" && (
-        <CheckCircleIcon className="flex-none w-5 h-5 text-green-500" />
-      )}
-      {props.status === "error" && (
-        <ExclamationTriangleIcon className="flex-none w-5 h-5 text-red-500" />
-      )}
-      {props.status === "running" && (
-        <SunIcon className="flex-none w-5 h-5 text-green-500" />
-      )}
-      {props.status === "idle" && (
-        <MinusCircleIcon className="flex-none w-5 h-5 text-gray-400" />
-      )}
+    <div
+      className="w-full flex items-center gap-2 p-2 border bg-white"
+      ref={setNodeRef}
+      style={{
+        transition,
+        transform: `translate(${transform?.x ?? 0}px, ${transform?.y}px)`,
+      }}
+    >
+      <span
+        className="flex-none w-5 h-5 flex items-center cursor-pointer"
+        {...listeners}
+      >
+        {props.status === "success" && (
+          <CheckCircleIcon className="text-green-500" />
+        )}
+        {props.status === "error" && (
+          <ExclamationTriangleIcon className="text-red-500" />
+        )}
+        {props.status === "running" && <SunIcon className="text-green-500" />}
+        {props.status === "idle" && (
+          <MinusCircleIcon className="text-gray-400" />
+        )}
+      </span>
       <input
         className="px-1 border w-[120px]"
         placeholder="name"
