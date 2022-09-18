@@ -29,15 +29,15 @@ export interface IpcServiceSpec {
   };
   "/config/update": {
     request: [Config];
-    response: undefined;
+    response: void;
   };
   "/process/start": {
     request: [{ id: string }];
-    response: undefined;
+    response: void;
   };
   "/process/stop": {
     request: [{ id: string }];
-    response: undefined;
+    response: void;
   };
   "/status/get": {
     request: [{ id: string }];
@@ -65,13 +65,16 @@ export interface IpcEventSpec {
 // preload script api
 //
 
-type IpcServiceApi = {
+export type IpcServiceApi = {
   [K in keyof IpcServiceSpec]: (
     ...arg: IpcServiceSpec[K]["request"]
   ) => Promise<IpcServiceSpec[K]["response"]>;
 };
 
-interface IpcEventApi {
+// TODO
+export interface IpcEventApi {}
+
+interface IpcEventClientApi {
   addEventListener<K extends keyof IpcEventSpec>(
     type: K,
     handler: (arg: IpcEventSpec[K]) => void
@@ -84,7 +87,7 @@ interface IpcEventApi {
 
 export interface PreloadApi {
   service: IpcServiceApi;
-  event: IpcEventApi;
+  event: IpcEventClientApi;
 }
 
 export const PRELOAD_API_NAME = "PRELOAD_API";
