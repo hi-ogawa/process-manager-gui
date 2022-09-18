@@ -1,3 +1,4 @@
+import type { Command, CommandStatus, Config } from "@-/common";
 import {
   DndContext,
   PointerSensor,
@@ -79,7 +80,7 @@ function App() {
 
   const queryConfig = useQuery({
     queryKey: ["/config/get"],
-    queryFn: () => PRELOAD_API["/config/get"](),
+    queryFn: () => PRELOAD_API.service["/config/get"](),
     onSuccess: (data) => form.reset(data),
     onError: () => {
       window.alert("failed to load configuration");
@@ -89,7 +90,7 @@ function App() {
   // TODO: queryStatus
 
   const mutationConfig = useMutation(
-    (config: any) => PRELOAD_API["/config/update"](config),
+    (config: Config) => PRELOAD_API.service["/config/update"](config),
     {
       onSuccess: () => {
         queryConfig.refetch();

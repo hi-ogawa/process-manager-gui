@@ -1,5 +1,6 @@
 {
   "scripts": {
+    "clean": "rm -rf build node_modules",
     "dev": "run-p build:main:dev build:preload:dev electron",
     "electron": "APP_RENDERER_URL=http://127.0.0.1:18181 nodemon --exec 'electron ./build/index.cjs' --watch ./build/index.cjs --watch ./build/index-preload.cjs",
     "build": "run-s build:main build:preload",
@@ -9,6 +10,7 @@
     "build:preload:dev": "npm run build:preload -- --watch"
   },
   "devDependencies": {
+    "@-/common": "workspace:*",
     "@tsconfig/node16-strictest": "^1.0.3",
     "@types/node": "^16",
     "esbuild": "^0.15.7",
