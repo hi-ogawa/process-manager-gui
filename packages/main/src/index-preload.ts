@@ -1,4 +1,9 @@
-import { IPC_SERVICE_ENDPOINTS, PRELOAD_API_NAME, PreloadApi } from "@-/common";
+import {
+  IPC_EVENT_ENDPOINTS,
+  IPC_SERVICE_ENDPOINTS,
+  PRELOAD_API_NAME,
+  PreloadApi,
+} from "@-/common";
 import { fromEntries } from "@-/common/lib/misc";
 import { contextBridge, ipcRenderer } from "electron";
 
@@ -10,11 +15,19 @@ const preloadApiProxy: PreloadApi = {
   service: fromEntries(
     IPC_SERVICE_ENDPOINTS.map((endpoint) => [
       endpoint,
-      (...args: any[]) => ipcRenderer.invoke(endpoint, ...args),
+      // @ts-expect-error implicit any
+      (...args) => ipcRenderer.invoke(endpoint, ...args),
     ])
   ),
-  // TODO
-  event: {} as any,
+  event: fromEntries(
+    IPC_EVENT_ENDPOINTS.map((type) => [
+      type,
+      {
+        on: (handler) => ipcRenderer.on(type, handler),
+        off: (handler) => ipcRenderer.off(type, handler),
+      },
+    ])
+  ),
 };
 
 main();

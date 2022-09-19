@@ -7,7 +7,7 @@
     "dev": "run-s dev:prepare && run-p main:dev renderer:dev tsc:dev",
     "main:dev": "npm -C packages/main run -s dev",
     "renderer:dev": "npm -C packages/renderer run -s dev",
-    "dev:prepare": "run-s tsc",
+    "dev:prepare": "tsc -b packages/common",
     "build": "pnpm run -r build",
     "package": "electron-builder build",
     "tsc": "tsc -b packages/main packages/renderer",

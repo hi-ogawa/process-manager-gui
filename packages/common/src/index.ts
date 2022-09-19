@@ -2,6 +2,7 @@
 // model
 //
 
+import type { IpcMainInvokeEvent, IpcRendererEvent } from "electron";
 import { IsEqual, staticAssert } from "./misc";
 
 // import { isEqual } from "./misc";
@@ -58,35 +59,48 @@ staticAssert<
 >();
 
 export interface IpcEventSpec {
-  "/change": undefined;
+  "/change": [];
 }
 
-//
-// preload script api
-//
+export const IPC_EVENT_ENDPOINTS = ["/change"] as const;
 
-export type IpcServiceApi = {
+staticAssert<IsEqual<typeof IPC_EVENT_ENDPOINTS[number], keyof IpcEventSpec>>();
+
+export type IpcServiceServerApi = {
+  [K in keyof IpcServiceSpec]: (
+    event: IpcMainInvokeEvent,
+    ...arg: IpcServiceSpec[K]["request"]
+  ) => Promise<IpcServiceSpec[K]["response"]>;
+};
+
+export type IpcServiceClientApi = {
   [K in keyof IpcServiceSpec]: (
     ...arg: IpcServiceSpec[K]["request"]
   ) => Promise<IpcServiceSpec[K]["response"]>;
 };
 
-// TODO
-export interface IpcEventApi {}
+export type IpcEventSend = <K extends keyof IpcEventSpec>(
+  type: K,
+  ...args: IpcEventSpec[K]
+) => void;
 
-interface IpcEventClientApi {
-  addEventListener<K extends keyof IpcEventSpec>(
-    type: K,
-    handler: (arg: IpcEventSpec[K]) => void
-  ): void;
-  removeEventListener<K extends keyof IpcEventSpec>(
-    type: K,
-    handler: (arg: IpcEventSpec[K]) => void
-  ): void;
-}
+type IpcEventClientApi = {
+  [K in keyof IpcEventSpec]: {
+    on(
+      handler: (event: IpcRendererEvent, ...args: IpcEventSpec[K]) => void
+    ): void;
+    off(
+      handler: (event: IpcRendererEvent, ...args: IpcEventSpec[K]) => void
+    ): void;
+  };
+};
+
+//
+// preload script api
+//
 
 export interface PreloadApi {
-  service: IpcServiceApi;
+  service: IpcServiceClientApi;
   event: IpcEventClientApi;
 }
 
