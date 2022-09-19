@@ -5,8 +5,6 @@
 import type { IpcMainInvokeEvent, IpcRendererEvent } from "electron";
 import { IsEqual, staticAssert } from "./misc";
 
-// import { isEqual } from "./misc";
-
 export interface Config {
   commands: Command[];
 }

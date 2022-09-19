@@ -1,3 +1,4 @@
+// ts-prune-ignore-next
 export function Debug(
   props: { d: any } & React.DetailedHTMLProps<
     React.DetailsHTMLAttributes<HTMLDetailsElement>,

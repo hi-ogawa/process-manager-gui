@@ -7,7 +7,8 @@
     "build:main": "esbuild src/index.ts --outfile=build/index.cjs --sourcemap --bundle --platform=node --external:electron",
     "build:main:dev": "npm run build:main -- --watch",
     "build:preload": "esbuild src/index-preload.ts --outfile=build/index-preload.cjs --sourcemap --bundle --platform=node --external:electron",
-    "build:preload:dev": "npm run build:preload -- --watch"
+    "build:preload:dev": "npm run build:preload -- --watch",
+    "ts-prune": "ts-prune --error --skip packages/common"
   },
   "devDependencies": {
     "@-/common": "workspace:*",
