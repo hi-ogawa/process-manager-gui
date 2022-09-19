@@ -1,5 +1,5 @@
 {
-  "name": "electron-vite-experiment",
+  "name": "toy-process-manager",
   "version": "0.0.0",
   "main": "packages/main/build/index.cjs",
   "scripts": {
