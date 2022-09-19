@@ -72,10 +72,9 @@ export class MainApp {
         }
       },
 
-      "/process/log/get": async ({ id }) => {
-        const process = this.processes.get(id);
-        tinyassert(process);
-        return process.log;
+      // TODO: stream log update
+      "/process/log/get": async (_event, { id }) => {
+        return this.processes.get(id)?.log ?? "";
       },
     };
     for (const endpoint of IPC_SERVICE_ENDPOINTS) {
@@ -145,15 +144,15 @@ class ProcessWrapper {
     });
     this.process = process;
     return new Promise((resolve) => {
-      process.stdout?.on("data", (data) => {
-        if (data instanceof Buffer) {
-          this.log += data.toString();
-        }
+      tinyassert(process.stdout);
+      tinyassert(process.stderr);
+      process.stdout.on("data", (data) => {
+        tinyassert(data instanceof Buffer);
+        this.log += data.toString();
       });
-      process.stderr?.on("data", (data) => {
-        if (data instanceof Buffer) {
-          this.log += data.toString();
-        }
+      process.stderr.on("data", (data) => {
+        tinyassert(data instanceof Buffer);
+        this.log += data.toString();
       });
       process.on("error", () => {
         resolve();

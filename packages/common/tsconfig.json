@@ -5,6 +5,7 @@
     "composite": true,
     "rootDir": "src",
     "outDir": "lib",
+    "module": "ESNext",
     "declaration": true,
     "declarationMap": true
   }

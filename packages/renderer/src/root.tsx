@@ -31,6 +31,7 @@ import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import React from "react";
 import { Save } from "react-feather";
 import { UseFormRegisterReturn, useFieldArray, useForm } from "react-hook-form";
+import { Modal } from "./components/modal";
 import { useDocumentEvent } from "./hooks";
 import { cls, generateId } from "./misc";
 
@@ -216,6 +217,7 @@ function CommandItemEditor(props: {
   const { listeners, setNodeRef, transform, transition } = useSortable({
     id: props.command.id,
   });
+  const [showLogModal, setShowLogModal] = React.useState(false);
 
   //
   // query
@@ -243,14 +245,6 @@ function CommandItemEditor(props: {
     PRELOAD_API.event["/change"].on(handler);
     return () => PRELOAD_API.event["/change"].off(handler);
   }, []);
-
-  // TODO
-  // const queryLog = useQuery({
-  //   queryKey: [`/process/log`, props.command.id],
-  //   queryFn: () =>
-  //     PRELOAD_API.service[`/process/log/get`]({ id: props.command.id }),
-  //   enabled: false,
-  // });
 
   return (
     <div
@@ -284,7 +278,7 @@ function CommandItemEditor(props: {
         )}
         placeholder="command"
         spellCheck={false}
-        disabled={status === "running"}
+        readOnly={status === "running"}
         {...props.register("command")}
       />
       {status !== "running" && (
@@ -311,10 +305,12 @@ function CommandItemEditor(props: {
           stop
         </button>
       )}
-      {/* TODO: queryLog */}
-      {/* <button className="px-2 border bg-gray-600 text-white font-bold text-sm self-stretch w-[50px] uppercase filter hover:brightness-85 transition duration-150">
+      <button
+        className="px-2 border bg-gray-600 text-white font-bold text-sm self-stretch w-[50px] uppercase filter hover:brightness-85 transition duration-150"
+        onClick={() => setShowLogModal(true)}
+      >
         log
-      </button> */}
+      </button>
       <button
         className="flex items-center filter hover:brightness-130"
         onClick={() => props.onDelete()}
@@ -322,6 +318,50 @@ function CommandItemEditor(props: {
       >
         <XCircleIcon className="w-6 h-6 text-gray-600" />
       </button>
+      <Modal
+        open={showLogModal}
+        onClose={() => setShowLogModal(false)}
+        className="max-w-2xl"
+      >
+        <div className="w-full p-4 bg-white flex flex-col gap-4">
+          <label className="flex flex-col gap-1">
+            <span>Name</span>
+            <input
+              className="px-1 border flex-1 bg-gray-100 text-gray-600"
+              value={props.command.name}
+              readOnly
+            />
+          </label>
+          <label className="flex flex-col gap-1">
+            <span>Command</span>
+            <input
+              className="px-1 border flex-1 bg-gray-100 text-gray-600"
+              value={props.command.command}
+              readOnly
+            />
+          </label>
+          <div className="flex flex-col gap-1">
+            <span>Log</span>
+            <LogComponent id={props.command.id} />
+          </div>
+        </div>
+      </Modal>
     </div>
+  );
+}
+
+function LogComponent(props: { id: string }) {
+  const queryLog = useQuery({
+    queryKey: [`/process/log/get`, props.id],
+    queryFn: () => PRELOAD_API.service[`/process/log/get`]({ id: props.id }),
+    onError: () => {
+      window.alert("failed to fetch log");
+    },
+  });
+  const content = queryLog.data ?? "";
+  return (
+    <pre className="border rounded min-h-[200px] max-h-[50vh] overflow-auto text-xs font-mono">
+      {content}
+    </pre>
   );
 }
