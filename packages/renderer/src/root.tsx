@@ -1,4 +1,4 @@
-import type { Command, CommandStatus, Config } from "@-/common";
+import type { Command, Config } from "@-/common";
 import {
   DndContext,
   PointerSensor,
@@ -31,7 +31,8 @@ import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import React from "react";
 import { Save } from "react-feather";
 import { UseFormRegisterReturn, useFieldArray, useForm } from "react-hook-form";
-import { generateId } from "./misc";
+import { useDocumentEvent } from "./hooks";
+import { cls, generateId } from "./misc";
 
 export function Root() {
   return (
@@ -62,6 +63,10 @@ function Providers(props: React.PropsWithChildren) {
   );
 }
 
+//
+// App
+//
+
 function App() {
   //
   // form
@@ -71,11 +76,12 @@ function App() {
   const commandsForm = useFieldArray({
     control: form.control,
     name: "commands",
+    keyName: "__key",
   });
   const updateConfig = form.handleSubmit((data) => mutationConfig.mutate(data));
 
   //
-  // query/mutation
+  // query
   //
 
   const queryConfig = useQuery({
@@ -87,8 +93,6 @@ function App() {
     },
   });
 
-  // TODO: queryStatus
-
   const mutationConfig = useMutation(
     (config: Config) => PRELOAD_API.service["/config/update"](config),
     {
@@ -99,9 +103,6 @@ function App() {
     }
   );
 
-  // TODO: mutationProcess
-  // TODO: monitor process status change event
-
   // Ctrl-s shortcut
   useDocumentEvent("keyup", (e: KeyboardEvent) => {
     if (e.ctrlKey && e.key === "s" && form.formState.isDirty) {
@@ -111,6 +112,9 @@ function App() {
 
   return (
     <div className="relative h-full bg-gray-50">
+      {/*  */}
+      {/* command list editor */}
+      {/*  */}
       <div className="h-full overflow-y-auto">
         <div className="flex flex-col items-center gap-2 m-4">
           <DndContext
@@ -144,11 +148,11 @@ function App() {
             >
               {commandsForm.fields.map((field, i) => (
                 <CommandItemEditor
-                  key={field.id}
+                  key={field.__key}
                   command={field}
-                  status={"success"}
                   register={(key) => form.register(`commands.${i}.${key}`)}
                   onDelete={() => commandsForm.remove(i)}
+                  isDirty={form.formState.isDirty}
                 />
               ))}
             </SortableContext>
@@ -199,15 +203,54 @@ function App() {
   );
 }
 
+//
+// CommandItemEditor
+//
+
 function CommandItemEditor(props: {
   command: Command;
-  status: CommandStatus;
   register: (key: "name" | "command") => UseFormRegisterReturn<string>;
   onDelete: () => void;
+  isDirty: boolean;
 }) {
   const { listeners, setNodeRef, transform, transition } = useSortable({
     id: props.command.id,
   });
+
+  //
+  // query
+  //
+
+  const queryProcess = useQuery({
+    queryKey: [`/process/get`, props.command.id],
+    queryFn: () =>
+      PRELOAD_API.service[`/process/get`]({ id: props.command.id }),
+  });
+  const status = queryProcess.data ?? "idle";
+
+  const mutationProcess = useMutation({
+    mutationFn: PRELOAD_API.service[`/process/update`],
+    onSuccess: () => {},
+    onError: () => {
+      window.alert("failed to start/stop process");
+    },
+  });
+
+  React.useEffect(() => {
+    const handler = () => {
+      queryProcess.refetch();
+    };
+    PRELOAD_API.event["/change"].on(handler);
+    return () => PRELOAD_API.event["/change"].off(handler);
+  }, []);
+
+  // TODO
+  // const queryLog = useQuery({
+  //   queryKey: [`/process/log`, props.command.id],
+  //   queryFn: () =>
+  //     PRELOAD_API.service[`/process/log/get`]({ id: props.command.id }),
+  //   enabled: false,
+  // });
 
   return (
     <div
@@ -222,16 +265,12 @@ function CommandItemEditor(props: {
         className="flex-none w-5 h-5 flex items-center cursor-pointer"
         {...listeners}
       >
-        {props.status === "success" && (
-          <CheckCircleIcon className="text-green-500" />
-        )}
-        {props.status === "error" && (
+        {status === "success" && <CheckCircleIcon className="text-green-500" />}
+        {status === "error" && (
           <ExclamationTriangleIcon className="text-red-500" />
         )}
-        {props.status === "running" && <SunIcon className="text-green-500" />}
-        {props.status === "idle" && (
-          <MinusCircleIcon className="text-gray-400" />
-        )}
+        {status === "running" && <SunIcon className="text-green-500" />}
+        {status === "idle" && <MinusCircleIcon className="text-gray-400" />}
       </span>
       <input
         className="px-1 border w-[120px]"
@@ -239,18 +278,36 @@ function CommandItemEditor(props: {
         {...props.register("name")}
       />
       <input
-        className="px-1 border flex-1"
+        className={cls(
+          "px-1 border flex-1",
+          status === "running" && "bg-gray-100"
+        )}
         placeholder="command"
         spellCheck={false}
+        disabled={status === "running"}
         {...props.register("command")}
       />
-      {props.status !== "running" && (
-        <button className="px-2 border bg-gray-600 text-white font-bold text-sm self-stretch w-[70px] uppercase filter hover:brightness-85 transition duration-150">
+      {status !== "running" && (
+        <button
+          className="px-2 border bg-gray-600 text-white font-bold text-sm self-stretch w-[70px] uppercase filter hover:brightness-85 transition duration-150"
+          onClick={() => {
+            if (props.isDirty) {
+              window.alert("please save before starting a process");
+              return;
+            }
+            mutationProcess.mutate({ id: props.command.id, type: "start" });
+          }}
+        >
           start
         </button>
       )}
-      {props.status === "running" && (
-        <button className="px-2 border bg-gray-600 text-white font-bold text-sm self-stretch w-[70px] uppercase filter hover:brightness-85 transition duration-150">
+      {status === "running" && (
+        <button
+          className="px-2 border bg-gray-600 text-white font-bold text-sm self-stretch w-[70px] uppercase filter hover:brightness-85 transition duration-150"
+          onClick={() =>
+            mutationProcess.mutate({ id: props.command.id, type: "stop" })
+          }
+        >
           stop
         </button>
       )}
@@ -261,23 +318,10 @@ function CommandItemEditor(props: {
       <button
         className="flex items-center filter hover:brightness-130"
         onClick={() => props.onDelete()}
+        disabled={status === "running"}
       >
         <XCircleIcon className="w-6 h-6 text-gray-600" />
       </button>
     </div>
   );
-}
-
-function useDocumentEvent<K extends keyof DocumentEventMap>(
-  type: K,
-  handler: (ev: DocumentEventMap[K]) => any
-) {
-  const handlerRef = React.useRef(handler);
-  handlerRef.current = handler;
-
-  React.useEffect(() => {
-    const handler = (e: DocumentEventMap[K]) => handlerRef.current(e);
-    document.addEventListener(type, handler);
-    return () => document.removeEventListener(type, handler);
-  }, []);
 }

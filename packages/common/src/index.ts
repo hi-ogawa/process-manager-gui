@@ -32,26 +32,26 @@ export interface IpcServiceSpec {
     request: [Config];
     response: void;
   };
-  "/process/start": {
-    request: [{ id: string }];
-    response: void;
-  };
-  "/process/stop": {
-    request: [{ id: string }];
-    response: void;
-  };
-  "/status/get": {
+  "/process/get": {
     request: [{ id: string }];
     response: CommandStatus;
+  };
+  "/process/update": {
+    request: [{ id: string; type: "start" | "stop" }];
+    response: void;
+  };
+  "/process/log/get": {
+    request: [{ id: string }];
+    response: string;
   };
 }
 
 export const IPC_SERVICE_ENDPOINTS = [
   "/config/get",
   "/config/update",
-  "/process/start",
-  "/process/stop",
-  "/status/get",
+  "/process/get",
+  "/process/update",
+  "/process/log/get",
 ] as const;
 
 staticAssert<

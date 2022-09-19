@@ -1,4 +1,9 @@
-export function Debug(props: { d: any }) {
+export function Debug(
+  props: { d: any } & React.DetailedHTMLProps<
+    React.DetailsHTMLAttributes<HTMLDetailsElement>,
+    HTMLDetailsElement
+  >
+) {
   const { d, ...rest } = props;
   return (
     <details {...rest}>
