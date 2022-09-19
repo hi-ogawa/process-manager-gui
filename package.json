@@ -1,17 +1,20 @@
 {
-  "name": "electron-vite-experiment",
+  "name": "toy-process-manager",
   "version": "0.0.0",
   "main": "packages/main/build/index.cjs",
   "scripts": {
-    "dev": "run-p main:dev renderer:dev tsc:dev",
+    "clean": "rm -rf build node_modules && pnpm run -r clean",
+    "dev": "run-s dev:prepare && run-p main:dev renderer:dev tsc:dev",
     "main:dev": "npm -C packages/main run -s dev",
     "renderer:dev": "npm -C packages/renderer run -s dev",
+    "dev:prepare": "tsc -b packages/common",
     "build": "pnpm run -r build",
     "package": "electron-builder build",
     "tsc": "tsc -b packages/main packages/renderer",
     "tsc:dev": "npm run tsc -- --watch --preserveWatchOutput",
-    "lint": "run-s prettier eslint",
-    "lint:check": "run-s prettier:check eslint:check",
+    "lint": "run-s prettier eslint ts-prune",
+    "lint:check": "run-s prettier:check eslint:check ts-prune",
+    "ts-prune": "pnpm run -r ts-prune",
     "eslint": "npm run eslint:check -- --fix",
     "eslint:check": "eslint . --cache --cache-location node_modules/.cache/.eslintcache --ext .js,.jsx,.ts,.tsx",
     "prettier": "prettier --write --cache .",
@@ -26,6 +29,7 @@
     "eslint-plugin-import": "^2.26.0",
     "npm-run-all": "^4.1.5",
     "prettier": "^2.7.1",
+    "ts-prune": "^0.10.3",
     "typescript": "^4.8.3"
   },
   "volta": {

@@ -10,7 +10,7 @@ const CONFIG = {
   },
   appImage: {
     desktop: {
-      Name: "Electron Vite Experiment",
+      Name: "Toy Process Manager",
     },
   },
 };

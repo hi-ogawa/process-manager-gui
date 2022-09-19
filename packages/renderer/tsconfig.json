@@ -2,8 +2,12 @@
   "extends": "@tsconfig/node16-strictest",
   "include": ["src"],
   "compilerOptions": {
-    "lib": ["ES2021", "dom"],
     "noEmit": true,
+    "module": "esnext",
+    "target": "es2021",
+    "lib": ["es2021", "dom"],
+    "types": ["vite/types/importMeta", "./types/preload-api"],
     "jsx": "react-jsx"
-  }
+  },
+  "references": [{ "path": "../common" }]
 }
