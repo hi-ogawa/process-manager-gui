@@ -34,7 +34,10 @@ export interface IpcServiceSpec {
   };
   "/process/get": {
     request: [{ id: string }];
-    response: CommandStatus;
+    response: {
+      status: CommandStatus;
+      debug?: any;
+    };
   };
   "/process/update": {
     request: [{ id: string; type: "start" | "stop" }];

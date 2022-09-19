@@ -9,7 +9,7 @@ import {
   IpcServiceServerApi,
 } from "@-/common";
 import { tinyassert } from "@-/common/lib/tinyassert";
-import { BrowserWindow, ipcMain } from "electron";
+import { BrowserWindow, app, ipcMain } from "electron";
 import { createApplicationMenu } from "./application-menu";
 import { addContextMenuHandler } from "./context-menu";
 import { CONFIG_PATH, PRELOAD_JS_PATH, RENDERER_URL } from "./types";
@@ -40,7 +40,11 @@ export class MainApp {
       },
 
       "/process/get": async (_event, { id }) => {
-        return this.processes.get(id)?.getStatus() ?? "idle";
+        const process = this.processes.get(id);
+        return {
+          status: process?.getStatus() ?? "idle",
+          debug: app.isPackaged ? null : JSON.stringify(process, null, 2),
+        };
       },
 
       "/process/update": async (_event, { id, type }) => {
@@ -124,6 +128,9 @@ class ProcessWrapper {
   getStatus(): CommandStatus {
     if (!this.process) {
       return "idle";
+    }
+    if (this.process.killed) {
+      return "success";
     }
     switch (this.process.exitCode) {
       case null: {

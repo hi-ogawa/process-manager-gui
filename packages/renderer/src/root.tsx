@@ -228,7 +228,7 @@ function CommandItemEditor(props: {
     queryFn: () =>
       PRELOAD_API.service[`/process/get`]({ id: props.command.id }),
   });
-  const status = queryProcess.data ?? "idle";
+  const status = queryProcess.data?.status ?? "idle";
 
   const mutationProcess = useMutation({
     mutationFn: PRELOAD_API.service[`/process/update`],
@@ -344,6 +344,14 @@ function CommandItemEditor(props: {
             <span>Log</span>
             <LogComponent id={props.command.id} />
           </div>
+          {import.meta.env.DEV && (
+            <details className="border p-2">
+              <summary>debug</summary>
+              <pre className="overflow-auto text-xs font-mono">
+                {queryProcess.data?.debug}
+              </pre>
+            </details>
+          )}
         </div>
       </Modal>
     </div>
@@ -360,7 +368,7 @@ function LogComponent(props: { id: string }) {
   });
   const content = queryLog.data ?? "";
   return (
-    <pre className="border rounded min-h-[200px] max-h-[50vh] overflow-auto text-xs font-mono">
+    <pre className="border rounded min-h-[200px] max-h-[50vh] p-2 overflow-auto text-xs font-mono">
       {content}
     </pre>
   );
