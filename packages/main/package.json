@@ -4,9 +4,9 @@
     "dev": "run-p build:main:dev build:preload:dev electron",
     "electron": "APP_RENDERER_URL=http://127.0.0.1:18181 nodemon --exec 'electron ./build/index.cjs' --watch ./build/index.cjs --watch ./build/index-preload.cjs",
     "build": "run-s build:main build:preload",
-    "build:main": "esbuild src/index.ts --outfile=build/index.cjs --bundle --platform=node --external:electron",
+    "build:main": "esbuild src/index.ts --outfile=build/index.cjs --sourcemap --bundle --platform=node --external:electron",
     "build:main:dev": "npm run build:main -- --watch",
-    "build:preload": "esbuild src/index-preload.ts --outfile=build/index-preload.cjs --bundle --platform=node --external:electron",
+    "build:preload": "esbuild src/index-preload.ts --outfile=build/index-preload.cjs --sourcemap --bundle --platform=node --external:electron",
     "build:preload:dev": "npm run build:preload -- --watch"
   },
   "devDependencies": {
