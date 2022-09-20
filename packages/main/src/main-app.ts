@@ -1,7 +1,6 @@
 import { ChildProcess, spawn } from "child_process";
 import fs from "fs";
 import {
-  Command,
   CommandStatus,
   Config,
   IPC_SERVICE_ENDPOINTS,
@@ -57,8 +56,8 @@ export class MainApp {
             if (process && process.getStatus() === "running") {
               throw new Error("invalid process status");
             }
-            process ??= new ProcessWrapper(command);
-            process.start().finally(() => {
+            process ??= new ProcessWrapper();
+            process.start(command.command).finally(() => {
               this.sendEvent("/change");
             });
             this.processes.set(id, process);
@@ -123,8 +122,6 @@ class ProcessWrapper {
   private process?: ChildProcess;
   public log: string = "";
 
-  constructor(private command: Command) {}
-
   getStatus(): CommandStatus {
     if (!this.process) {
       return "idle";
@@ -143,9 +140,9 @@ class ProcessWrapper {
     return "error";
   }
 
-  async start(): Promise<void> {
+  async start(command: string): Promise<void> {
     tinyassert(this.getStatus() !== "running");
-    const process = spawn(this.command.command, {
+    const process = spawn(command, {
       shell: true,
       stdio: ["ignore", "pipe", "pipe"],
     });
