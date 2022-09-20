@@ -1,7 +1,6 @@
 import { ChildProcess, spawn } from "child_process";
 import fs from "fs";
 import {
-  Command,
   CommandStatus,
   Config,
   IPC_SERVICE_ENDPOINTS,
