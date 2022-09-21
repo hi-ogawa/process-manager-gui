@@ -14,7 +14,12 @@
     "@-/common": "workspace:*",
     "@tsconfig/node16-strictest": "^1.0.3",
     "@types/node": "^16",
+    "@types/semver": "^7.3.12",
     "esbuild": "^0.15.7",
     "nodemon": "^2.0.20"
+  },
+  "dependencies": {
+    "electron-updater": "^5.2.1",
+    "semver": "^7.3.7"
   }
 }
