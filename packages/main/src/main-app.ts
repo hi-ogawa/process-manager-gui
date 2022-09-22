@@ -1,6 +1,7 @@
 import { ChildProcess, spawn } from "child_process";
 import fs from "fs";
 import {
+  Command,
   CommandStatus,
   Config,
   IPC_SERVICE_ENDPOINTS,
@@ -56,8 +57,8 @@ export class MainApp {
             if (process && process.getStatus() === "running") {
               throw new Error("invalid process status");
             }
-            process ??= new ProcessWrapper();
-            process.start(command.command).finally(() => {
+            process ??= new ProcessWrapper(this.sendEvent);
+            process.start(command).finally(() => {
               this.sendEvent("/change");
             });
             this.processes.set(id, process);
@@ -122,6 +123,8 @@ class ProcessWrapper {
   private process?: ChildProcess;
   public log: string = "";
 
+  constructor(private sendEvent: IpcEventSend) {}
+
   getStatus(): CommandStatus {
     if (!this.process) {
       return "idle";
@@ -140,7 +143,7 @@ class ProcessWrapper {
     return "error";
   }
 
-  async start(command: string): Promise<void> {
+  async start({ id, command }: Command): Promise<void> {
     tinyassert(this.getStatus() !== "running");
     const process = spawn(command, {
       shell: true,
@@ -152,11 +155,15 @@ class ProcessWrapper {
       tinyassert(process.stderr);
       process.stdout.on("data", (data) => {
         tinyassert(data instanceof Buffer);
-        this.log += data.toString();
+        const dataString = data.toString();
+        this.log += dataString;
+        this.sendEvent("/log", { id, data: dataString });
       });
       process.stderr.on("data", (data) => {
         tinyassert(data instanceof Buffer);
-        this.log += data.toString();
+        const dataString = data.toString();
+        this.log += dataString;
+        this.sendEvent("/log", { id, data: dataString });
       });
       process.on("error", () => {
         resolve();

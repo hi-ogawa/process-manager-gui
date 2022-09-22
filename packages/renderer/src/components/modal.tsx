@@ -9,6 +9,7 @@ import { useId } from "react";
 import { RemoveScroll } from "react-remove-scroll";
 import { cls } from "../misc";
 
+// ts-prune-ignore-next
 export function Modal(props: {
   open: boolean;
   onClose: () => void;

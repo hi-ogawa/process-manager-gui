@@ -23,7 +23,9 @@ const preloadApiProxy: PreloadApi = {
     IPC_EVENT_ENDPOINTS.map((type) => [
       type,
       {
+        // @ts-expect-error implicit any
         on: (handler) => ipcRenderer.on(type, handler),
+        // @ts-expect-error implicit any
         off: (handler) => ipcRenderer.off(type, handler),
       },
     ])

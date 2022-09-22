@@ -1,4 +1,4 @@
-import type { Command, Config } from "@-/common";
+import type { Command, Config, IpcEventHandler } from "@-/common";
 import {
   DndContext,
   PointerSensor,
@@ -31,8 +31,11 @@ import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import React from "react";
 import { Save } from "react-feather";
 import { UseFormRegisterReturn, useFieldArray, useForm } from "react-hook-form";
-import { Modal } from "./components/modal";
-import { useDocumentEvent } from "./hooks";
+import {
+  useDocumentEvent,
+  useMergeRefs,
+  useMutationObserverCallback,
+} from "./hooks";
 import { cls, generateId } from "./misc";
 
 export function Root() {
@@ -217,7 +220,7 @@ function CommandItemEditor(props: {
   const { listeners, setNodeRef, transform, transition } = useSortable({
     id: props.command.id,
   });
-  const [showLogModal, setShowLogModal] = React.useState(false);
+  const [logCollapsed, setLogCollapsed] = React.useState(true);
 
   //
   // query
@@ -247,113 +250,85 @@ function CommandItemEditor(props: {
   }, []);
 
   return (
-    <div
-      className="w-full flex items-center gap-2 p-2 border bg-white"
-      ref={setNodeRef}
-      style={{
-        transition,
-        transform: `translate(${transform?.x ?? 0}px, ${transform?.y}px)`,
-      }}
-    >
-      <span
-        className="flex-none w-5 h-5 flex items-center cursor-pointer"
-        {...listeners}
+    <div className="w-full flex flex-col bg-white">
+      <div
+        className="w-full flex items-center gap-2 p-2 border"
+        ref={setNodeRef}
+        style={{
+          transition,
+          transform: `translate(${transform?.x ?? 0}px, ${transform?.y}px)`,
+        }}
       >
-        {status === "success" && <CheckCircleIcon className="text-green-500" />}
-        {status === "error" && (
-          <ExclamationTriangleIcon className="text-red-500" />
-        )}
-        {status === "running" && <SunIcon className="text-green-500" />}
-        {status === "idle" && <MinusCircleIcon className="text-gray-400" />}
-      </span>
-      <input
-        className="px-1 border w-[120px]"
-        placeholder="name"
-        {...props.register("name")}
-      />
-      <input
-        className={cls(
-          "px-1 border flex-1",
-          status === "running" && "bg-gray-100"
-        )}
-        placeholder="command"
-        spellCheck={false}
-        readOnly={status === "running"}
-        {...props.register("command")}
-      />
-      {status !== "running" && (
-        <button
-          className="px-2 border bg-gray-600 text-white font-bold text-sm self-stretch w-[70px] uppercase filter hover:brightness-85 transition duration-150"
-          onClick={() => {
-            if (props.isDirty) {
-              window.alert("please save before starting a process");
-              return;
-            }
-            mutationProcess.mutate({ id: props.command.id, type: "start" });
-          }}
+        <span
+          className="flex-none w-5 h-5 flex items-center cursor-pointer"
+          {...listeners}
         >
-          start
-        </button>
-      )}
-      {status === "running" && (
-        <button
-          className="px-2 border bg-gray-600 text-white font-bold text-sm self-stretch w-[70px] uppercase filter hover:brightness-85 transition duration-150"
-          onClick={() =>
-            mutationProcess.mutate({ id: props.command.id, type: "stop" })
-          }
-        >
-          stop
-        </button>
-      )}
-      <button
-        className="px-2 border bg-gray-600 text-white font-bold text-sm self-stretch w-[50px] uppercase filter hover:brightness-85 transition duration-150"
-        onClick={() => setShowLogModal(true)}
-      >
-        log
-      </button>
-      <button
-        className="flex items-center filter hover:brightness-130"
-        onClick={() => props.onDelete()}
-        disabled={status === "running"}
-      >
-        <XCircleIcon className="w-6 h-6 text-gray-600" />
-      </button>
-      <Modal
-        open={showLogModal}
-        onClose={() => setShowLogModal(false)}
-        className="max-w-2xl"
-      >
-        <div className="w-full p-4 bg-white flex flex-col gap-4">
-          <label className="flex flex-col gap-1">
-            <span>Name</span>
-            <input
-              className="px-1 border flex-1 bg-gray-100 text-gray-600"
-              value={props.command.name}
-              readOnly
-            />
-          </label>
-          <label className="flex flex-col gap-1">
-            <span>Command</span>
-            <input
-              className="px-1 border flex-1 bg-gray-100 text-gray-600"
-              value={props.command.command}
-              readOnly
-            />
-          </label>
-          <div className="flex flex-col gap-1">
-            <span>Log</span>
-            <LogComponent id={props.command.id} />
-          </div>
-          {import.meta.env.DEV && (
-            <details className="border p-2">
-              <summary>debug</summary>
-              <pre className="overflow-auto text-xs font-mono">
-                {queryProcess.data?.debug}
-              </pre>
-            </details>
+          {status === "success" && (
+            <CheckCircleIcon className="text-green-500" />
           )}
-        </div>
-      </Modal>
+          {status === "error" && (
+            <ExclamationTriangleIcon className="text-red-500" />
+          )}
+          {status === "running" && <SunIcon className="text-green-500" />}
+          {status === "idle" && <MinusCircleIcon className="text-gray-400" />}
+        </span>
+        <input
+          className="px-1 border w-[120px]"
+          placeholder="name"
+          {...props.register("name")}
+        />
+        <input
+          className={cls(
+            "px-1 border flex-1",
+            status === "running" && "bg-gray-100"
+          )}
+          placeholder="command"
+          spellCheck={false}
+          readOnly={status === "running"}
+          {...props.register("command")}
+        />
+        {status !== "running" && (
+          <button
+            className="px-2 border bg-gray-600 text-white font-bold text-sm self-stretch w-[70px] uppercase filter hover:brightness-85 transition duration-150"
+            onClick={() => {
+              if (props.isDirty) {
+                window.alert("please save before starting a process");
+                return;
+              }
+              mutationProcess.mutate({ id: props.command.id, type: "start" });
+            }}
+          >
+            start
+          </button>
+        )}
+        {status === "running" && (
+          <button
+            className="px-2 border bg-gray-600 text-white font-bold text-sm self-stretch w-[70px] uppercase filter hover:brightness-85 transition duration-150"
+            onClick={() =>
+              mutationProcess.mutate({ id: props.command.id, type: "stop" })
+            }
+          >
+            stop
+          </button>
+        )}
+        <button
+          className={cls(
+            "px-2 bg-gray-600 text-white font-bold text-sm self-stretch w-[50px] uppercase filter hover:brightness-85 transition duration-150",
+            !logCollapsed && "bg-gray-300 text-black"
+          )}
+          onClick={() => setLogCollapsed(!logCollapsed)}
+        >
+          log
+        </button>
+        <button
+          className="flex items-center filter hover:brightness-130"
+          onClick={() => props.onDelete()}
+          disabled={status === "running"}
+        >
+          <XCircleIcon className="w-6 h-6 text-gray-600" />
+        </button>
+      </div>
+      {!logCollapsed && <LogComponent id={props.command.id} />}
     </div>
   );
 }
@@ -367,8 +342,47 @@ function LogComponent(props: { id: string }) {
     },
   });
   const content = queryLog.data ?? "";
+
+  React.useEffect(() => {
+    const handler: IpcEventHandler["/log"] = (_, event) => {
+      if (props.id === event.id) {
+        queryLog.refetch();
+      }
+    };
+    PRELOAD_API.event["/log"].on(handler);
+    return () => PRELOAD_API.event["/log"].off(handler);
+  }, [props.id]);
+
+  //
+  // scroll to bottom
+  //
+
+  const refScrollOnMount = React.useCallback((el: HTMLElement | null) => {
+    el?.scrollTo({
+      top: el.scrollHeight,
+      behavior: "auto",
+    });
+  }, []);
+
+  const refScrollOnChange = useMutationObserverCallback(
+    { subtree: true, childList: true, characterData: true },
+    (el: HTMLElement) => {
+      // scroll to bottom if current scroll is almost at the bottom
+      const scrollMax = el.scrollHeight - el.clientHeight;
+      if (Math.abs(scrollMax - el.scrollTop) < 100) {
+        el.scrollTo({
+          top: el.scrollHeight,
+          behavior: "smooth",
+        });
+      }
+    }
+  );
+
   return (
-    <pre className="border rounded min-h-[200px] max-h-[50vh] p-2 overflow-auto text-xs font-mono">
+    <pre
+      ref={useMergeRefs(refScrollOnMount, refScrollOnChange)}
+      className="border border-t-0 min-h-[200px] max-h-[50vh] p-2 overflow-auto text-xs font-mono"
+    >
       {content}
     </pre>
   );
