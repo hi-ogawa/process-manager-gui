@@ -31,7 +31,11 @@ import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import React from "react";
 import { Save } from "react-feather";
 import { UseFormRegisterReturn, useFieldArray, useForm } from "react-hook-form";
-import { useDocumentEvent } from "./hooks";
+import {
+  useDocumentEvent,
+  useMergeRefs,
+  useMutationObserverCallback,
+} from "./hooks";
 import { cls, generateId } from "./misc";
 
 export function Root() {
@@ -329,7 +333,6 @@ function CommandItemEditor(props: {
   );
 }
 
-// TODO: scroll to bottom
 function LogComponent(props: { id: string }) {
   const queryLog = useQuery({
     queryKey: [`/process/log/get`, props.id],
@@ -350,8 +353,36 @@ function LogComponent(props: { id: string }) {
     return () => PRELOAD_API.event["/log"].off(handler);
   }, [props.id]);
 
+  //
+  // scroll to bottom
+  //
+
+  const refScrollOnMount = React.useCallback((el: HTMLElement | null) => {
+    el?.scrollTo({
+      top: el.scrollHeight,
+      behavior: "auto",
+    });
+  }, []);
+
+  const refScrollOnChange = useMutationObserverCallback(
+    { subtree: true, childList: true, characterData: true },
+    (el: HTMLElement) => {
+      // scroll to bottom if current scroll is almost at the bottom
+      const scrollMax = el.scrollHeight - el.clientHeight;
+      if (Math.abs(scrollMax - el.scrollTop) < 100) {
+        el.scrollTo({
+          top: el.scrollHeight,
+          behavior: "smooth",
+        });
+      }
+    }
+  );
+
   return (
-    <pre className="border border-t-0 min-h-[200px] max-h-[50vh] p-2 overflow-auto text-xs font-mono">
+    <pre
+      ref={useMergeRefs(refScrollOnMount, refScrollOnChange)}
+      className="border border-t-0 min-h-[200px] max-h-[50vh] p-2 overflow-auto text-xs font-mono"
+    >
       {content}
     </pre>
   );
