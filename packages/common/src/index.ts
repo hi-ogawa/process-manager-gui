@@ -61,9 +61,10 @@ staticAssert<
 
 export interface IpcEventSpec {
   "/change": [];
+  "/log": [{ id: string; data: string }];
 }
 
-export const IPC_EVENT_ENDPOINTS = ["/change"] as const;
+export const IPC_EVENT_ENDPOINTS = ["/change", "/log"] as const;
 
 staticAssert<IsEqual<typeof IPC_EVENT_ENDPOINTS[number], keyof IpcEventSpec>>();
 
@@ -85,14 +86,17 @@ export type IpcEventSend = <K extends keyof IpcEventSpec>(
   ...args: IpcEventSpec[K]
 ) => void;
 
+export type IpcEventHandler = {
+  [K in keyof IpcEventSpec]: (
+    event: IpcRendererEvent,
+    ...args: IpcEventSpec[K]
+  ) => void;
+};
+
 type IpcEventClientApi = {
   [K in keyof IpcEventSpec]: {
-    on(
-      handler: (event: IpcRendererEvent, ...args: IpcEventSpec[K]) => void
-    ): void;
-    off(
-      handler: (event: IpcRendererEvent, ...args: IpcEventSpec[K]) => void
-    ): void;
+    on(handler: IpcEventHandler[K]): void;
+    off(handler: IpcEventHandler[K]): void;
   };
 };
 

@@ -1,4 +1,4 @@
-import type { Command, Config } from "@-/common";
+import type { Command, Config, IpcEventHandler } from "@-/common";
 import {
   DndContext,
   PointerSensor,
@@ -31,7 +31,6 @@ import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import React from "react";
 import { Save } from "react-feather";
 import { UseFormRegisterReturn, useFieldArray, useForm } from "react-hook-form";
-import { Modal } from "./components/modal";
 import { useDocumentEvent } from "./hooks";
 import { cls, generateId } from "./misc";
 
@@ -217,7 +216,6 @@ function CommandItemEditor(props: {
   const { listeners, setNodeRef, transform, transition } = useSortable({
     id: props.command.id,
   });
-  const [showLogModal, setShowLogModal] = React.useState(false);
   const [logCollapsed, setLogCollapsed] = React.useState(true);
 
   //
@@ -325,48 +323,13 @@ function CommandItemEditor(props: {
         >
           <XCircleIcon className="w-6 h-6 text-gray-600" />
         </button>
-        <Modal
-          open={showLogModal}
-          onClose={() => setShowLogModal(false)}
-          className="max-w-2xl"
-        >
-          <div className="w-full p-4 bg-white flex flex-col gap-4">
-            <label className="flex flex-col gap-1">
-              <span>Name</span>
-              <input
-                className="px-1 border flex-1 bg-gray-100 text-gray-600"
-                value={props.command.name}
-                readOnly
-              />
-            </label>
-            <label className="flex flex-col gap-1">
-              <span>Command</span>
-              <input
-                className="px-1 border flex-1 bg-gray-100 text-gray-600"
-                value={props.command.command}
-                readOnly
-              />
-            </label>
-            <div className="flex flex-col gap-1">
-              <span>Log</span>
-              <LogComponent id={props.command.id} />
-            </div>
-            {import.meta.env.DEV && (
-              <details className="border p-2">
-                <summary>debug</summary>
-                <pre className="overflow-auto text-xs font-mono">
-                  {queryProcess.data?.debug}
-                </pre>
-              </details>
-            )}
-          </div>
-        </Modal>
       </div>
-      {!logCollapsed && <LogComponent2 id={props.command.id} />}
+      {!logCollapsed && <LogComponent id={props.command.id} />}
     </div>
   );
 }
 
+// TODO: scroll to bottom
 function LogComponent(props: { id: string }) {
   const queryLog = useQuery({
     queryKey: [`/process/log/get`, props.id],
@@ -376,23 +339,17 @@ function LogComponent(props: { id: string }) {
     },
   });
   const content = queryLog.data ?? "";
-  return (
-    <pre className="border rounded min-h-[200px] max-h-[50vh] p-2 overflow-auto text-xs font-mono">
-      {content}
-    </pre>
-  );
-}
 
-// TODO: scroll to bottom
-function LogComponent2(props: { id: string }) {
-  const queryLog = useQuery({
-    queryKey: [`/process/log/get`, props.id],
-    queryFn: () => PRELOAD_API.service[`/process/log/get`]({ id: props.id }),
-    onError: () => {
-      window.alert("failed to fetch log");
-    },
-  });
-  const content = queryLog.data ?? "";
+  React.useEffect(() => {
+    const handler: IpcEventHandler["/log"] = (_, event) => {
+      if (props.id === event.id) {
+        queryLog.refetch();
+      }
+    };
+    PRELOAD_API.event["/log"].on(handler);
+    return () => PRELOAD_API.event["/log"].off(handler);
+  }, [props.id]);
+
   return (
     <pre className="border border-t-0 min-h-[200px] max-h-[50vh] p-2 overflow-auto text-xs font-mono">
       {content}
