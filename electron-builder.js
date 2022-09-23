@@ -4,8 +4,6 @@ const CONFIG = {
     output: "build",
   },
   files: ["packages/**/build/**"],
-  // prevent electron-builder implicitly tries to publish on CI
-  publish: null,
   // https://www.electron.build/configuration/appimage
   linux: {
     target: "AppImage",
