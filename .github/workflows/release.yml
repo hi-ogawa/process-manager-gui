@@ -21,8 +21,8 @@ jobs:
       - name: create release
         uses: softprops/action-gh-release@v1
         with:
-          name: v${{ env.PACKAGE_VERSION }}
-          tag_name: v${{ env.PACKAGE_VERSION }}
+          name: ${{ env.PACKAGE_VERSION }}
+          tag_name: ${{ env.PACKAGE_VERSION }}
           files: |
             build/latest-linux.yml
             build/*.AppImage

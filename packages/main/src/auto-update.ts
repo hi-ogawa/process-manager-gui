@@ -21,12 +21,11 @@ export async function promptAutoUpdate() {
   // check updates by fetching latesta.yml
   const updates = await updater.checkForUpdates();
   const version = updates?.updateInfo.version;
-  const currentVersion = app.getVersion();
-
   if (!version) {
     throw new Error("version informaion is not available");
   }
 
+  const currentVersion = app.getVersion();
   if (!semver.gt(version, currentVersion)) {
     dialog.showMessageBox({
       type: "info",
