@@ -13,7 +13,6 @@ import semver from "semver";
 export async function promptAutoUpdate() {
   const updater = new AppImageUpdater({
     provider: "github",
-    vPrefixedTagName: false,
     owner: "hi-ogawa",
     repo: "toy-process-manager",
   });
