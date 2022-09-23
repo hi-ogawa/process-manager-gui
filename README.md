@@ -12,7 +12,7 @@ npm run build
 npm run package
 ./build/toy-process-manager-0.0.0.AppImage
 
-# release (this command just pushes tag and then CI will publish new version)
+# release (this command just pushes a new tag and then CI will pick it up and create a new release)
 npm run release
 ```
 
