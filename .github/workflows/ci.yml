@@ -1,6 +1,5 @@
 name: ci
-"on":
-  - push
+on: [push]
 jobs:
   build:
     runs-on: ubuntu-20.04
@@ -16,11 +15,3 @@ jobs:
       - run: npm run lint:check
       - run: npm run tsc
       - run: npm run build
-      - run: npm run package
-      # https://github.com/softprops/action-gh-release#%EF%B8%8F-uploading-release-assets
-      - uses: softprops/action-gh-release@v1
-        if: startsWith(github.ref, 'refs/tags/')
-        with:
-          files: |
-            build/latest-linux.yml
-            build/*.AppImage
