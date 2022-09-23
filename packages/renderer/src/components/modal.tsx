@@ -5,6 +5,7 @@ import {
   useFloating,
   useInteractions,
 } from "@floating-ui/react-dom-interactions";
+import { Transition } from "@headlessui/react";
 import { useId } from "react";
 import { RemoveScroll } from "react-remove-scroll";
 import { cls } from "../misc";
@@ -29,7 +30,14 @@ export function Modal(props: {
 
   return (
     <FloatingPortal id={id}>
-      {props.open && (
+      <Transition
+        show={props.open}
+        className="fixed inset-0 transition duration-250"
+        enterFrom="opacity-0"
+        enterTo="opacity-100"
+        leaveFrom="opacity-100"
+        leaveTo="opacity-0"
+      >
         <RemoveScroll className="fixed inset-0 flex px-4 py-8 overflow-auto bg-black bg-opacity-50 z-10">
           <div
             {...getFloatingProps({
@@ -40,7 +48,7 @@ export function Modal(props: {
             {props.children}
           </div>
         </RemoveScroll>
-      )}
+      </Transition>
     </FloatingPortal>
   );
 }
