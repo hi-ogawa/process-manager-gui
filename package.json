@@ -1,6 +1,6 @@
 {
   "name": "toy-process-manager",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "main": "packages/main/build/index.cjs",
   "scripts": {
     "clean": "rm -rf build node_modules && pnpm run -r clean",
