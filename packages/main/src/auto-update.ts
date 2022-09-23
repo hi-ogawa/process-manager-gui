@@ -30,9 +30,9 @@ export async function promptAutoUpdate() {
       type: "info",
       title: "New version available",
       message: [
-        `Would you like to download?`,
-        `current: ${currentVersion}`,
-        `latest: ${version}`,
+        `Would you like to download?\n`,
+        `Current : ${currentVersion}`,
+        `Latest : ${version}`,
       ].join("\n"),
       buttons: ["Cancel", "Download"],
     });
