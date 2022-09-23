@@ -1,6 +1,6 @@
 {
   "name": "toy-process-manager",
-  "version": "0.0.0",
+  "version": "0.0.1-pre.5",
   "main": "packages/main/build/index.cjs",
   "scripts": {
     "clean": "rm -rf build node_modules && pnpm run -r clean",
@@ -9,7 +9,7 @@
     "renderer:dev": "npm -C packages/renderer run -s dev",
     "dev:prepare": "tsc -b packages/common",
     "build": "pnpm run -r build",
-    "package": "electron-builder build",
+    "package": "electron-builder build --publish never",
     "tsc": "tsc -b packages/main packages/renderer",
     "tsc:dev": "npm run tsc -- --watch --preserveWatchOutput",
     "lint": "run-s prettier eslint ts-prune",

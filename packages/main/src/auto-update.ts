@@ -13,7 +13,6 @@ import semver from "semver";
 export async function promptAutoUpdate() {
   const updater = new AppImageUpdater({
     provider: "github",
-    vPrefixedTagName: false,
     owner: "hi-ogawa",
     repo: "toy-process-manager",
   });
@@ -22,39 +21,49 @@ export async function promptAutoUpdate() {
   // check updates by fetching latesta.yml
   const updates = await updater.checkForUpdates();
   const version = updates?.updateInfo.version;
-  const currentVersion = app.getVersion();
+  if (!version) {
+    throw new Error("version informaion is not available");
+  }
 
-  if (version && semver.gt(version, currentVersion)) {
-    // ask if continue to download and update
-    const clicked = await dialog.showMessageBox({
+  const currentVersion = app.getVersion();
+  if (!semver.gt(version, currentVersion)) {
+    dialog.showMessageBox({
       type: "info",
-      title: "New version available",
-      message: [
-        `Would you like to download?\n`,
-        `Current : ${currentVersion}`,
-        `Latest : ${version}`,
-      ].join("\n"),
-      buttons: ["Cancel", "Download"],
+      message: `Latest version '${version}' is already installed.`,
+      buttons: ["OK"],
+    });
+    return;
+  }
+
+  // ask if continue to download and update
+  const clicked = await dialog.showMessageBox({
+    type: "info",
+    title: "New version available",
+    message: [
+      `Would you like to download?\n`,
+      `Current : ${currentVersion}`,
+      `Latest : ${version}`,
+    ].join("\n"),
+    buttons: ["Cancel", "Download"],
+  });
+
+  if (clicked.response === 1) {
+    updater.on("download-progress", (data) => {
+      console.log(`${data.percent}%`);
     });
 
+    // download app
+    await updater.downloadUpdate();
+
+    // confirm before restarting the app with a new version
+    const clicked = await dialog.showMessageBox({
+      type: "info",
+      title: "Download finished",
+      message: `Would you like to restart and update the app?`,
+      buttons: ["Cancel", "Restart"],
+    });
     if (clicked.response === 1) {
-      updater.on("download-progress", (data) => {
-        console.log(`${data.percent}%`);
-      });
-
-      // download app
-      await updater.downloadUpdate();
-
-      // confirm before restarting the app with a new version
-      const clicked = await dialog.showMessageBox({
-        type: "info",
-        title: "Download finished",
-        message: `Would you like to restart and update the app?`,
-        buttons: ["Cancel", "Restart"],
-      });
-      if (clicked.response === 1) {
-        updater.quitAndInstall();
-      }
+      updater.quitAndInstall();
     }
   }
 }
