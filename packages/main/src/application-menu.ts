@@ -1,4 +1,5 @@
-import { Menu, shell } from "electron";
+import { Menu, dialog, shell } from "electron";
+import { promptAutoUpdate } from "./auto-update";
 import { CONFIG_PATH } from "./types";
 
 export function createApplicationMenu() {
@@ -24,6 +25,22 @@ export function createApplicationMenu() {
         { role: "resetZoom" },
         { role: "zoomIn" },
         { role: "zoomOut" },
+      ],
+    },
+    {
+      label: "Help",
+      submenu: [
+        {
+          label: "Check Updates",
+          click: async () => {
+            try {
+              await promptAutoUpdate();
+            } catch (e) {
+              console.error("failed to auto update", e);
+              dialog.showErrorBox("failed to auto update", String(e));
+            }
+          },
+        },
       ],
     },
   ]);
