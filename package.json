@@ -10,7 +10,7 @@
     "dev:prepare": "tsc -b packages/common",
     "build": "pnpm run -r build",
     "package": "electron-builder build --publish never",
-    "release": "version=$(jq -r '.version' package.json) && git tag $version && git push origin $version",
+    "release-tag": "version=$(jq -r '.version' package.json) && git tag $version && git push origin $version",
     "tsc": "tsc -b packages/main packages/renderer",
     "tsc:dev": "npm run tsc -- --watch --preserveWatchOutput",
     "lint": "run-s prettier eslint ts-prune",

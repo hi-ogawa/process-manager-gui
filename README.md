@@ -12,8 +12,8 @@ npm run build
 npm run package
 ./build/toy-process-manager-0.0.0.AppImage
 
-# release (this command just pushes a new tag and then CI will pick it up and create a new release)
-npm run release
+# release
+npm run release-tag
 ```
 
 ![image](https://user-images.githubusercontent.com/4232207/190984956-29ba24e5-f1e7-4503-9de6-597ef6120f81.png)
