@@ -9,10 +9,57 @@ import {
   IpcServiceServerApi,
 } from "@-/common";
 import { tinyassert } from "@hiogawa/utils";
+import * as comlink from "comlink";
 import { BrowserWindow, app, ipcMain } from "electron";
 import { createApplicationMenu } from "./application-menu";
 import { addContextMenuHandler } from "./context-menu";
 import { CONFIG_PATH, PRELOAD_JS_PATH, RENDERER_URL } from "./types";
+
+function createMainEndpoint(
+  webContents: Electron.WebContents
+): comlink.Endpoint {
+  webContents;
+  return {
+    postMessage: (message: any, transfer?: Transferable[]) => {
+      // const ports: MessagePort[] = [];
+      // for (const t of transfer ?? []) {
+      //   tinyassert(t instanceof MessagePort);
+      //   ports.push(t);
+      // }
+      // ipcRenderer.postMessage(CHANNEL, message, ports);
+    },
+
+    addEventListener: (
+      type: string,
+      listener: EventListenerOrEventListenerObject,
+      _options?: {}
+    ) => {
+      // const wrapper: ListenerWrapper = (event, ...args) => {
+      //   event.senderId; // TODO: identify associated renderer window
+      //   const comlinkEvent = { data: args[0] } as MessageEvent;
+      //   if ("handleEvent" in listener) {
+      //     listener.handleEvent(comlinkEvent);
+      //   } else {
+      //     listener(comlinkEvent);
+      //   }
+      // };
+      // ipcRenderer.on(type, wrapper);
+      // listerWrappers.set(listener, wrapper);
+    },
+
+    removeEventListener: (
+      type: string,
+      listener: EventListenerOrEventListenerObject,
+      _options?: {}
+    ) => {
+      // const wrapper = listerWrappers.get(listener);
+      // if (wrapper) {
+      //   ipcRenderer.off(type, wrapper);
+      //   listerWrappers.delete(listener);
+      // }
+    },
+  };
+}
 
 export class MainApp {
   private window?: BrowserWindow;
@@ -26,6 +73,15 @@ export class MainApp {
 
   async start() {
     this.window = await createWindow();
+    comlink.expose(this, createMainEndpoint(this.window.webContents));
+  }
+
+  async getConfig(): Promise<Config> {
+    return getConfig();
+  }
+
+  async updateConfig(config: Config): Promise<void> {
+    await fs.promises.writeFile(CONFIG_PATH, JSON.stringify(config, null, 2));
   }
 
   initializeIpc() {

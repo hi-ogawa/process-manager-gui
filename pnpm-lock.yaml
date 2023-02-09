@@ -8,6 +8,7 @@ importers:
       '@tsconfig/strictest': ^1.0.2
       '@typescript-eslint/eslint-plugin': ^5.37.0
       '@typescript-eslint/parser': ^5.37.0
+      comlink: ^4.4.1
       electron: ^23.0.0
       electron-builder: ^23.3.3
       eslint: ^8.23.1
@@ -22,6 +23,7 @@ importers:
       '@tsconfig/strictest': 1.0.2
       '@typescript-eslint/eslint-plugin': 5.37.0_amoyvdwzcvvn4wgzeftnuyhjle
       '@typescript-eslint/parser': 5.37.0_4dcepvmun56gjdctx7q2wwbdvy
+      comlink: 4.4.1
       electron: 23.0.0
       electron-builder: 23.3.3
       eslint: 8.23.1
@@ -1782,6 +1784,10 @@ packages:
     engines: {node: '>= 0.8'}
     dependencies:
       delayed-stream: 1.0.0
+    dev: true
+
+  /comlink/4.4.1:
+    resolution: {integrity: sha512-+1dlx0aY5Jo1vHy/tSsIGpSkN4tS9rZSW8FIhG0JH/crs9wwweswIo/POr451r7bZww3hFbPAKnTpimzL/mm4Q==}
     dev: true
 
   /commander/2.9.0:

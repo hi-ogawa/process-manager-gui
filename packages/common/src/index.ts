@@ -110,6 +110,7 @@ export interface PreloadApi {
 }
 
 export const PRELOAD_API_NAME = "PRELOAD_API";
+export const COMLINK_API_NAME = "COMLINK_API";
 
 //
 // re-exports
