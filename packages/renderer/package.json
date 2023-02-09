@@ -2,7 +2,7 @@
   "scripts": {
     "clean": "rm -rf build node_modules",
     "dev": "vite --port 18181 --no-clearScreen",
-    "build": "vite build --outDir build",
+    "build": "vite build",
     "ts-prune": "ts-prune --error --skip packages/common"
   },
   "devDependencies": {

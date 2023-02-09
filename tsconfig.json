@@ -1,0 +1,14 @@
+{
+  "include": [],
+  "references": [
+    {
+      "path": "packages/common"
+    },
+    {
+      "path": "packages/main"
+    },
+    {
+      "path": "packages/renderer"
+    }
+  ]
+}

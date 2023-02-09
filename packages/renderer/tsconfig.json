@@ -8,6 +8,5 @@
     "lib": ["es2021", "dom"],
     "types": ["vite/types/importMeta", "./types/preload-api"],
     "jsx": "react-jsx"
-  },
-  "references": [{ "path": "../common" }]
+  }
 }

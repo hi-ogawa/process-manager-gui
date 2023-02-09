@@ -1,12 +1,10 @@
 {
-  "extends": "@tsconfig/node16-strictest",
+  "extends": "@tsconfig/node16-strictest/tsconfig.json",
   "include": ["src"],
   "compilerOptions": {
-    "composite": true,
-    "rootDir": "src",
-    "outDir": "lib",
-    "module": "ESNext",
-    "declaration": true,
-    "declarationMap": true
+    "noEmit": true,
+    "module": "esnext",
+    "moduleResolution": "node",
+    "target": "esnext"
   }
 }
