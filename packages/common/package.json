@@ -15,8 +15,5 @@
   "scripts": {
     "dev": "tsup --watch",
     "build": "tsup"
-  },
-  "devDependencies": {
-    "@tsconfig/node16-strictest": "^1.0.3"
   }
 }

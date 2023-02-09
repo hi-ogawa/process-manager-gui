@@ -33,15 +33,11 @@ importers:
       typescript: 4.9.5
 
   packages/common:
-    specifiers:
-      '@tsconfig/node16-strictest': ^1.0.3
-    devDependencies:
-      '@tsconfig/node16-strictest': 1.0.3
+    specifiers: {}
 
   packages/main:
     specifiers:
       '@-/common': workspace:*
-      '@tsconfig/node16-strictest': ^1.0.3
       '@types/node': ^16
       '@types/semver': ^7.3.12
       electron-updater: ^5.2.1
@@ -49,7 +45,6 @@ importers:
       semver: ^7.3.8
     devDependencies:
       '@-/common': link:../common
-      '@tsconfig/node16-strictest': 1.0.3
       '@types/node': 16.11.59
       '@types/semver': 7.3.12
       electron-updater: 5.2.1
@@ -67,7 +62,6 @@ importers:
       '@heroicons/react': ^2.0.11
       '@tanstack/react-query': ^4.3.4
       '@tanstack/react-query-devtools': ^4.3.5
-      '@tsconfig/node16-strictest': ^1.0.3
       '@types/lodash': ^4.14.185
       '@types/react': ^18.0.20
       '@types/react-dom': ^18.0.6
@@ -97,7 +91,6 @@ importers:
       react-hook-form: 7.35.0_react@18.2.0
       react-remove-scroll: 2.5.5_w5j4k42lgipnm43s3brx6h3c34
     devDependencies:
-      '@tsconfig/node16-strictest': 1.0.3
       '@types/lodash': 4.14.185
       '@types/react': 18.0.20
       '@types/react-dom': 18.0.6
@@ -940,10 +933,6 @@ packages:
       minimatch: 3.1.2
       mkdirp: 1.0.4
       path-browserify: 1.0.1
-    dev: true
-
-  /@tsconfig/node16-strictest/1.0.3:
-    resolution: {integrity: sha512-sY7TxE3BzAdsCuKqGWOTtAoPe4tPD0xlPWfjinJvrBvCulyALVSwvIoo7WMcX8O/WyMFzn9rQObA43mAogQ8MQ==}
     dev: true
 
   /@tsconfig/strictest/1.0.2:

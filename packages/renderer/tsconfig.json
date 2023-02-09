@@ -1,11 +1,11 @@
 {
-  "extends": "@tsconfig/node16-strictest",
+  "extends": "@tsconfig/strictest",
   "include": ["src"],
   "compilerOptions": {
     "noEmit": true,
-    "module": "esnext",
-    "target": "es2021",
-    "lib": ["es2021", "dom"],
+    "moduleResolution": "node",
+    "module": "ESNext",
+    "lib": ["ESNext", "DOM"],
     "types": ["vite/types/importMeta", "./types/preload-api"],
     "jsx": "react-jsx"
   }

@@ -8,7 +8,6 @@
   },
   "devDependencies": {
     "@-/common": "workspace:*",
-    "@tsconfig/node16-strictest": "^1.0.3",
     "@types/node": "^16",
     "@types/semver": "^7.3.12",
     "electron-updater": "^5.2.1",

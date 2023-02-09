@@ -5,7 +5,6 @@
     "ts-prune": "ts-prune --error --skip packages/common"
   },
   "devDependencies": {
-    "@tsconfig/node16-strictest": "^1.0.3",
     "@types/lodash": "^4.14.185",
     "@types/react": "^18.0.20",
     "@types/react-dom": "^18.0.6",
