@@ -10,23 +10,22 @@ import {
 } from "@-/common";
 import { tinyassert } from "@hiogawa/utils";
 import * as comlink from "comlink";
-import { BrowserWindow, app, ipcMain } from "electron";
+import { BrowserWindow, Event, app, ipcMain } from "electron";
 import { createApplicationMenu } from "./application-menu";
+import { COMLINK_CHANNEL } from "./common";
 import { addContextMenuHandler } from "./context-menu";
 import { CONFIG_PATH, PRELOAD_JS_PATH, RENDERER_URL } from "./types";
 
 function createMainEndpoint(
   webContents: Electron.WebContents
 ): comlink.Endpoint {
-  webContents;
+  const listerWrappers = new WeakMap<object, any>();
+
   return {
     postMessage: (message: any, transfer?: Transferable[]) => {
-      // const ports: MessagePort[] = [];
-      // for (const t of transfer ?? []) {
-      //   tinyassert(t instanceof MessagePort);
-      //   ports.push(t);
-      // }
-      // ipcRenderer.postMessage(CHANNEL, message, ports);
+      tinyassert((transfer ?? []).length === 0);
+      webContents.postMessage(COMLINK_CHANNEL, message, []);
+      webContents.ipc;
     },
 
     addEventListener: (
@@ -34,17 +33,18 @@ function createMainEndpoint(
       listener: EventListenerOrEventListenerObject,
       _options?: {}
     ) => {
-      // const wrapper: ListenerWrapper = (event, ...args) => {
-      //   event.senderId; // TODO: identify associated renderer window
-      //   const comlinkEvent = { data: args[0] } as MessageEvent;
-      //   if ("handleEvent" in listener) {
-      //     listener.handleEvent(comlinkEvent);
-      //   } else {
-      //     listener(comlinkEvent);
-      //   }
-      // };
-      // ipcRenderer.on(type, wrapper);
-      // listerWrappers.set(listener, wrapper);
+      tinyassert(type === "message");
+      const wrapper = (_event: Event, channel: string, ...args: any[]) => {
+        tinyassert(channel === COMLINK_CHANNEL);
+        const comlinkEvent = { data: args[0] } as MessageEvent;
+        if ("handleEvent" in listener) {
+          listener.handleEvent(comlinkEvent);
+        } else {
+          listener(comlinkEvent);
+        }
+      };
+      webContents.on("ipc-message", wrapper);
+      listerWrappers.set(listener, wrapper);
     },
 
     removeEventListener: (
@@ -52,11 +52,12 @@ function createMainEndpoint(
       listener: EventListenerOrEventListenerObject,
       _options?: {}
     ) => {
-      // const wrapper = listerWrappers.get(listener);
-      // if (wrapper) {
-      //   ipcRenderer.off(type, wrapper);
-      //   listerWrappers.delete(listener);
-      // }
+      tinyassert(type === "message");
+      const wrapper = listerWrappers.get(listener);
+      if (wrapper) {
+        webContents.off(COMLINK_CHANNEL, wrapper);
+        listerWrappers.delete(listener);
+      }
     },
   };
 }

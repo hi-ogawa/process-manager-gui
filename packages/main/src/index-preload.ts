@@ -9,19 +9,18 @@ import { fromEntries } from "@-/common";
 import { tinyassert } from "@hiogawa/utils";
 import * as comlink from "comlink";
 import { IpcRendererEvent, contextBridge, ipcRenderer } from "electron";
+import { COMLINK_CHANNEL } from "./common";
 import type { MainApp } from "./main-app";
 
-export const COMLINK_CHANNEL = "__comlink_channel";
-
-type ListenerWrapper = (event: IpcRendererEvent, ...args: any[]) => void;
-
-export function createPreloadEndpoint(
+function createPreloadEndpoint(
   ipcRenderer: Electron.IpcRenderer
 ): comlink.Endpoint {
-  const listerWrappers = new WeakMap<object, ListenerWrapper>();
+  const listerWrappers = new WeakMap<object, any>();
 
   return {
     postMessage: (message: any, transfer?: Transferable[]) => {
+      // comlink uses `MessageChannel` to proxy callback
+      // https://github.com/GoogleChromeLabs/comlink/blob/dffe9050f63b1b39f30213adeb1dd4b9ed7d2594/src/comlink.ts#L209
       const ports: MessagePort[] = [];
       for (const t of transfer ?? []) {
         tinyassert(t instanceof MessagePort);
@@ -35,7 +34,8 @@ export function createPreloadEndpoint(
       listener: EventListenerOrEventListenerObject,
       _options?: {}
     ) => {
-      const wrapper: ListenerWrapper = (event, ...args) => {
+      tinyassert(type === "message");
+      const wrapper = (event: IpcRendererEvent, ...args: any[]) => {
         event.senderId; // TODO: identify associated renderer window
         const comlinkEvent = { data: args[0] } as MessageEvent;
         if ("handleEvent" in listener) {
@@ -44,7 +44,7 @@ export function createPreloadEndpoint(
           listener(comlinkEvent);
         }
       };
-      ipcRenderer.on(type, wrapper);
+      ipcRenderer.on(COMLINK_CHANNEL, wrapper);
       listerWrappers.set(listener, wrapper);
     },
 
@@ -53,9 +53,10 @@ export function createPreloadEndpoint(
       listener: EventListenerOrEventListenerObject,
       _options?: {}
     ) => {
+      tinyassert(type === "message");
       const wrapper = listerWrappers.get(listener);
       if (wrapper) {
-        ipcRenderer.off(type, wrapper);
+        ipcRenderer.off(COMLINK_CHANNEL, wrapper);
         listerWrappers.delete(listener);
       }
     },
