@@ -90,7 +90,12 @@ function App() {
 
   const queryConfig = useQuery({
     queryKey: ["/config/get"],
-    queryFn: () => PRELOAD_API.service["/config/get"](),
+    queryFn: async () => {
+      console.log(COMLINK_API.proxy);
+      // new MessageChannel()
+      return COMLINK_API.proxy.getConfig();
+      // return PRELOAD_API.service["/config/get"]();
+    },
     onSuccess: (data) => form.reset(data),
     onError: () => {
       window.alert("failed to load configuration");

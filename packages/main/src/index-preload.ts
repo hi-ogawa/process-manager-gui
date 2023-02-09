@@ -15,6 +15,11 @@ import type { MainApp } from "./main-app";
 function createPreloadEndpoint(
   ipcRenderer: Electron.IpcRenderer
 ): comlink.Endpoint {
+  // TODO: can we ditch electron specific ipc in favor of MessageChannel?
+  const { port1, port2 } = new MessageChannel();
+  port1;
+  port2;
+
   const listerWrappers = new WeakMap<object, any>();
 
   return {
@@ -66,8 +71,13 @@ function createPreloadEndpoint(
 function main() {
   contextBridge.exposeInMainWorld(PRELOAD_API_NAME, preloadApiProxy);
 
+  // exposeInMainWorld itself might be implemented via Proxy,
+  // so things might be very flaky
+  //
+  // can we pass `new MessageChannel()` from renderer to main
+  // then forget about electron IPC?
   const proxy = comlink.wrap<MainApp>(createPreloadEndpoint(ipcRenderer));
-  contextBridge.exposeInMainWorld(COMLINK_API_NAME, proxy);
+  contextBridge.exposeInMainWorld(COMLINK_API_NAME, { proxy });
 }
 
 const preloadApiProxy: PreloadApi = {
