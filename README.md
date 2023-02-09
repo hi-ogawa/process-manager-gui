@@ -5,11 +5,11 @@ simple process manager GUI implemented with electron.
 ```sh
 # development
 pnpm i
-npm run dev
+pnpm dev
 
 # package and run
-npm run build
-npm run package
+pnpm build
+pnpm package
 ./build/toy-process-manager-*.AppImage
 ```
 
