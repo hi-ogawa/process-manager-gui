@@ -16,10 +16,10 @@
     "package": "electron-builder build --publish never",
     "tsc": "tsc -b",
     "lint": "run-s lint:*",
-    "lint-check": "run-s lint-check:*",
     "lint:eslint": "pnpm lint-check:eslint --fix",
-    "lint-check:eslint": "eslint . --cache --cache-location node_modules/.cache/.eslintcache --ext .js,.jsx,.ts,.tsx",
     "lint:prettier": "prettier --write --cache .",
+    "lint-check": "run-s lint-check:*",
+    "lint-check:eslint": "eslint . --cache --cache-location node_modules/.cache/.eslintcache --ext .js,.jsx,.ts,.tsx",
     "lint-check:prettier": "prettier --check --cache .",
     "lint-check:ts-prune": "pnpm run -r ts-prune"
   },
