@@ -8,7 +8,7 @@ import {
   IpcEventSend,
   IpcServiceServerApi,
 } from "@-/common";
-import { tinyassert } from "@-/common/lib/tinyassert";
+import { tinyassert } from "@hiogawa/utils";
 import { BrowserWindow, app, ipcMain } from "electron";
 import { createApplicationMenu } from "./application-menu";
 import { addContextMenuHandler } from "./context-menu";

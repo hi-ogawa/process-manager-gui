@@ -1,3 +1,2 @@
 pnpm-lock.yaml
-build
-lib
+dist

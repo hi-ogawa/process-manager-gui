@@ -1,10 +1,10 @@
-import { tinyassert } from "@-/common/lib/tinyassert";
 import {
   FloatingPortal,
   useDismiss,
   useFloating,
   useInteractions,
 } from "@floating-ui/react-dom-interactions";
+import { tinyassert } from "@hiogawa/utils";
 import { useId } from "react";
 import { RemoveScroll } from "react-remove-scroll";
 import { cls } from "../misc";

@@ -1,9 +1,9 @@
 {
-  "extends": "@tsconfig/node16-strictest",
+  "extends": "@tsconfig/strictest/tsconfig.json",
   "include": ["src"],
   "compilerOptions": {
     "noEmit": true,
+    "moduleResolution": "node",
     "types": ["@types/node"]
-  },
-  "references": [{ "path": "../common" }]
+  }
 }

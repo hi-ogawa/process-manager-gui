@@ -1,14 +1,19 @@
 {
   "name": "@-/common",
   "private": true,
-  "main": "lib/index.js",
-  "types": "lib/index.d.ts",
-  "scripts": {
-    "clean": "rm -rf lib tsconfig.tsbuildinfo node_modules",
-    "build": "tsc"
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs",
+      "types": "./dist/index.d.ts"
+    }
   },
-  "devDependencies": {
-    "@tsconfig/node16-strictest": "^1.0.3",
-    "esbuild": "^0.15.7"
+  "scripts": {
+    "dev": "tsup --watch",
+    "build": "tsup"
   }
 }

@@ -4,7 +4,7 @@ import {
   PRELOAD_API_NAME,
   PreloadApi,
 } from "@-/common";
-import { fromEntries } from "@-/common/lib/misc";
+import { fromEntries } from "@-/common";
 import { contextBridge, ipcRenderer } from "electron";
 
 function main() {
