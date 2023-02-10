@@ -10,7 +10,13 @@ import {
 } from "@-/common";
 import { tinyassert } from "@hiogawa/utils";
 import * as comlink from "comlink";
-import { BrowserWindow, Event, app, ipcMain } from "electron";
+import {
+  BrowserWindow,
+  Event,
+  MessageChannelMain,
+  app,
+  ipcMain,
+} from "electron";
 import { createApplicationMenu } from "./application-menu";
 import { COMLINK_CHANNEL } from "./common";
 import { addContextMenuHandler } from "./context-menu";
@@ -74,7 +80,24 @@ export class MainApp {
 
   async start() {
     this.window = await createWindow();
-    comlink.expose(this, createMainEndpoint(this.window.webContents));
+    const webContents = this.window.webContents;
+    webContents.on("ipc-message", (event, channel, ...args) => {
+      console.log("======= ipc-message");
+      console.log(event, channel, args);
+    });
+
+    const messageChannel = new MessageChannelMain();
+    const { port1, port2 } = messageChannel;
+    webContents.postMessage("MESSAGE_CHANNEL_HANDSHAKE", null, [port1]);
+    port2.on("message", (event) => {
+      console.log({ event });
+    });
+    port2.start();
+    {
+      () => {
+        comlink.expose(this, createMainEndpoint(webContents));
+      };
+    }
   }
 
   async getConfig(): Promise<Config> {

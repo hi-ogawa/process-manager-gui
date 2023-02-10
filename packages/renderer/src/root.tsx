@@ -84,6 +84,20 @@ function App() {
   });
   const updateConfig = form.handleSubmit((data) => mutationConfig.mutate(data));
 
+  React.useEffect(() => {
+    try {
+      (window as any).MESSAGE_PORT.postMessage("hello from renderer");
+    } catch (e) {
+      console.error(e);
+    }
+    try {
+      const messageChannel = new MessageChannel();
+      (window as any).PRELOAD_API_V2.sendMessagePort(messageChannel.port2);
+    } catch (e) {
+      console.error(e);
+    }
+  }, []);
+
   //
   // query
   //
@@ -93,8 +107,8 @@ function App() {
     queryFn: async () => {
       console.log(COMLINK_API.proxy);
       // new MessageChannel()
-      return COMLINK_API.proxy.getConfig();
-      // return PRELOAD_API.service["/config/get"]();
+      // return COMLINK_API.proxy.getConfig();
+      return PRELOAD_API.service["/config/get"]();
     },
     onSuccess: (data) => form.reset(data),
     onError: () => {

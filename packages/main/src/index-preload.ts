@@ -78,6 +78,30 @@ function main() {
   // then forget about electron IPC?
   const proxy = comlink.wrap<MainApp>(createPreloadEndpoint(ipcRenderer));
   contextBridge.exposeInMainWorld(COMLINK_API_NAME, { proxy });
+
+  contextBridge.exposeInMainWorld("PRELOAD_API_V2", { sendMessagePort });
+
+  ipcRenderer.on("MESSAGE_CHANNEL_HANDSHAKE", (e) => {
+    console.log(e, e.ports);
+    const port = e.ports[0];
+    tinyassert(port);
+    port.postMessage("hello from preload");
+    port.start();
+    // TODO: need to expose each method manually
+    const portApi = {
+      postMessage: port.postMessage.bind(port),
+    };
+    contextBridge.exposeInMainWorld("MESSAGE_PORT", portApi);
+  });
+}
+
+function sendMessagePort(port: MessagePort) {
+  console.log("sendMessagePort", port);
+  ipcRenderer.postMessage(
+    "MESSAGE_CHANNEL_HANDSHAKE",
+    { type: "init", data: { port } },
+    [port]
+  );
 }
 
 const preloadApiProxy: PreloadApi = {
