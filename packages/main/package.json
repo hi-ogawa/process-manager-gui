@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "run-p dev:*",
     "dev:tsup": "tsup --watch",
-    "dev:electron": "APP_RENDERER_URL=http://127.0.0.1:18181 nodemon --exec 'electron ./dist/index.js' --watch ./dist",
+    "dev:electron": "APP_RENDERER_URL=http://127.0.0.1:18181 nodemon --exec 'electron ./dist/index.js' -i ./dist",
     "build": "tsup",
     "ts-prune": "ts-prune --error --skip packages/common"
   },

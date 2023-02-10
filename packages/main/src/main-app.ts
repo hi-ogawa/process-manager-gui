@@ -128,7 +128,6 @@ export class MainApp {
       console.log("======= ipc-message");
       console.log(event, channel, args);
     });
-
     const messageChannel = new MessageChannelMain();
     const { port1, port2 } = messageChannel;
     comlink.expose(this, createMainEndpointV2(port1));
