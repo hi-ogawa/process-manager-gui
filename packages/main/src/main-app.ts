@@ -68,6 +68,49 @@ function createMainEndpoint(
   };
 }
 
+function createMainEndpointV2(
+  port: Electron.MessagePortMain
+): comlink.Endpoint {
+  const listerWrappers = new WeakMap<object, any>();
+  return {
+    postMessage: (message: any, transfer?: Transferable[]) => {
+      tinyassert((transfer ?? []).length === 0);
+      port.postMessage(message, []);
+    },
+
+    addEventListener: (
+      type: string,
+      listener: EventListenerOrEventListenerObject,
+      _options?: {}
+    ) => {
+      const wrapper = (event: Electron.MessageEvent) => {
+        const comlinkEvent = { data: event.data } as MessageEvent;
+        if ("handleEvent" in listener) {
+          listener.handleEvent(comlinkEvent);
+        } else {
+          listener(comlinkEvent);
+        }
+      };
+      tinyassert(type === "message");
+      port.on("message", wrapper);
+      listerWrappers.set(listener, wrapper);
+    },
+
+    removeEventListener: (
+      type: string,
+      listener: EventListenerOrEventListenerObject,
+      _options?: {}
+    ) => {
+      tinyassert(type === "message");
+      const wrapper = listerWrappers.get(listener);
+      if (wrapper) {
+        port.off("message", wrapper);
+        listerWrappers.delete(listener);
+      }
+    },
+  };
+}
+
 export class MainApp {
   private window?: BrowserWindow;
   private processes: Map<string, ProcessWrapper> = new Map();
@@ -88,7 +131,14 @@ export class MainApp {
 
     const messageChannel = new MessageChannelMain();
     const { port1, port2 } = messageChannel;
-    webContents.postMessage("MESSAGE_CHANNEL_HANDSHAKE", null, [port1]);
+    comlink.expose(this, createMainEndpointV2(port1));
+    const CHANNEL_NAME = "MESSAGE_CHANNEL_HANDSHAKE";
+    webContents.postMessage(CHANNEL_NAME, null, [port2]);
+    webContents.on("ipc-message", (event, channel, ...args) => {
+      console.log({ event, args });
+      if (channel === "MESSAGE_CHANNEL_HANDSHAKE") {
+      }
+    });
     port2.on("message", (event) => {
       console.log({ event });
     });
