@@ -1,4 +1,5 @@
 import { Command, Config, IpcEventHandler, sleep } from "@-/common";
+import type { MainApp } from "@-/main";
 import {
   DndContext,
   PointerSensor,
@@ -90,7 +91,7 @@ function App() {
       while (!(window as any).MESSAGE_PORT) {
         await sleep(1000);
       }
-      const proxy: any = comlink.wrap((window as any).MESSAGE_PORT);
+      const proxy = comlink.wrap<MainApp>((window as any).MESSAGE_PORT);
       console.log({ proxy });
       const config = await proxy.getConfig();
       console.log({ config });
