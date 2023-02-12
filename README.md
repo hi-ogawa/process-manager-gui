@@ -5,7 +5,7 @@ simple process manager GUI implemented with electron.
 ```sh
 # development
 pnpm i
-pnpm dev
+pnpm dev  # type "rs + Enter" to restart electron
 
 # package and run
 pnpm build

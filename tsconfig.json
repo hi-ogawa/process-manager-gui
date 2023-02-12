@@ -1,14 +1,12 @@
 {
-  "include": [],
-  "references": [
-    {
-      "path": "packages/common"
-    },
-    {
-      "path": "packages/main"
-    },
-    {
-      "path": "packages/renderer"
-    }
-  ]
+  "extends": "@tsconfig/strictest",
+  "include": ["src"],
+  "compilerOptions": {
+    "noEmit": true,
+    "moduleResolution": "node",
+    "module": "ESNext",
+    "lib": ["ESNext", "DOM"],
+    "types": ["vite/types/importMeta", "./types/preload-api"],
+    "jsx": "react-jsx"
+  }
 }
