@@ -1,4 +1,5 @@
-import type { Command, Config, IpcEventHandler } from "@-/common";
+import { Command, Config, IpcEventHandler, sleep } from "@-/common";
+import type { MainApp } from "@-/main";
 import {
   DndContext,
   PointerSensor,
@@ -28,6 +29,7 @@ import {
   useQuery,
 } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
+import * as comlink from "comlink";
 import React from "react";
 import { Save } from "react-feather";
 import { UseFormRegisterReturn, useFieldArray, useForm } from "react-hook-form";
@@ -84,13 +86,30 @@ function App() {
   });
   const updateConfig = form.handleSubmit((data) => mutationConfig.mutate(data));
 
+  React.useEffect(() => {
+    (async () => {
+      while (!(window as any).MESSAGE_PORT) {
+        await sleep(1000);
+      }
+      const proxy = comlink.wrap<MainApp>((window as any).MESSAGE_PORT);
+      console.log({ proxy });
+      const config = await proxy.getConfig();
+      console.log({ config });
+    })();
+  }, []);
+
   //
   // query
   //
 
   const queryConfig = useQuery({
     queryKey: ["/config/get"],
-    queryFn: () => PRELOAD_API.service["/config/get"](),
+    queryFn: async () => {
+      // console.log(COMLINK_API.proxy);
+      // new MessageChannel()
+      // return COMLINK_API.proxy.getConfig();
+      return PRELOAD_API.service["/config/get"]();
+    },
     onSuccess: (data) => form.reset(data),
     onError: () => {
       window.alert("failed to load configuration");

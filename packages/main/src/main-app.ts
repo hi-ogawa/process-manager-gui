@@ -7,12 +7,59 @@ import {
   IPC_SERVICE_ENDPOINTS,
   IpcEventSend,
   IpcServiceServerApi,
+  MESSAGE_PORT_HANDSHAKE,
 } from "@-/common";
 import { tinyassert } from "@hiogawa/utils";
-import { BrowserWindow, app, ipcMain } from "electron";
+import * as comlink from "comlink";
+import { BrowserWindow, MessageChannelMain, app, ipcMain } from "electron";
 import { createApplicationMenu } from "./application-menu";
 import { addContextMenuHandler } from "./context-menu";
 import { CONFIG_PATH, PRELOAD_JS_PATH, RENDERER_URL } from "./types";
+
+function createMainEndpoint(port: Electron.MessagePortMain): comlink.Endpoint {
+  const listerWrappers = new WeakMap<object, any>();
+  return {
+    postMessage: (message: any, transfer?: Transferable[]) => {
+      tinyassert((transfer ?? []).length === 0);
+      console.log("createMainEndpointV2.postMessage", { message });
+      port.postMessage(message, []);
+    },
+
+    addEventListener: (
+      type: string,
+      listener: EventListenerOrEventListenerObject,
+      _options?: {}
+    ) => {
+      const wrapper = (event: Electron.MessageEvent) => {
+        console.log("createMainEndpointV2.addEventListener", { event });
+        const comlinkEvent = { data: event.data } as MessageEvent;
+        if ("handleEvent" in listener) {
+          listener.handleEvent(comlinkEvent);
+        } else {
+          listener(comlinkEvent);
+        }
+      };
+      tinyassert(type === "message");
+      port.on("message", wrapper);
+      listerWrappers.set(listener, wrapper);
+    },
+
+    removeEventListener: (
+      type: string,
+      listener: EventListenerOrEventListenerObject,
+      _options?: {}
+    ) => {
+      tinyassert(type === "message");
+      const wrapper = listerWrappers.get(listener);
+      if (wrapper) {
+        port.off("message", wrapper);
+        listerWrappers.delete(listener);
+      }
+    },
+
+    start: () => port.start(),
+  };
+}
 
 export class MainApp {
   private window?: BrowserWindow;
@@ -26,6 +73,20 @@ export class MainApp {
 
   async start() {
     this.window = await createWindow();
+    const webContents = this.window.webContents;
+    const messageChannelMain = new MessageChannelMain();
+    comlink.expose(this, createMainEndpoint(messageChannelMain.port1));
+    webContents.postMessage(MESSAGE_PORT_HANDSHAKE, null, [
+      messageChannelMain.port2,
+    ]);
+  }
+
+  async getConfig(): Promise<Config> {
+    return getConfig();
+  }
+
+  async updateConfig(config: Config): Promise<void> {
+    await fs.promises.writeFile(CONFIG_PATH, JSON.stringify(config, null, 2));
   }
 
   initializeIpc() {

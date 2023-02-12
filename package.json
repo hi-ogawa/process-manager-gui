@@ -28,6 +28,7 @@
     "@tsconfig/strictest": "^1.0.2",
     "@typescript-eslint/eslint-plugin": "^5.37.0",
     "@typescript-eslint/parser": "^5.37.0",
+    "comlink": "^4.4.1",
     "electron": "^23.0.0",
     "electron-builder": "^23.3.3",
     "eslint": "^8.23.1",
