@@ -12,3 +12,9 @@ export type IsEqual<X, Y> = (<T>() => T extends X ? 1 : 2) extends <
   : false;
 
 export function staticAssert<_ extends true>() {}
+
+export const MESSAGE_PORT_HANDSHAKE = "MESSAGE_PORT_HANDSHAKE";
+
+export function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}

@@ -2,6 +2,7 @@ import {
   COMLINK_API_NAME,
   IPC_EVENT_ENDPOINTS,
   IPC_SERVICE_ENDPOINTS,
+  MESSAGE_PORT_HANDSHAKE,
   PRELOAD_API_NAME,
   PreloadApi,
 } from "@-/common";
@@ -81,17 +82,29 @@ function main() {
 
   contextBridge.exposeInMainWorld("PRELOAD_API_V2", { sendMessagePort });
 
-  ipcRenderer.on("MESSAGE_CHANNEL_HANDSHAKE", (e) => {
-    console.log(e, e.ports);
+  ipcRenderer.on(MESSAGE_PORT_HANDSHAKE, (e) => {
     const port = e.ports[0];
     tinyassert(port);
-    port.postMessage("hello from preload");
-    port.start();
-    // TODO: need to expose each method manually
-    const portApi = {
-      postMessage: port.postMessage.bind(port),
+    // TODO: createPreloadEndpoint
+    const exposedPort = {
+      postMessage: (...args: any[]) => {
+        console.log("preload:postMessage", { args });
+        return port.postMessage(args[0]);
+      },
+      addEventListener: (...args: any[]) => {
+        console.log("preload:addEventListener", args);
+        port.addEventListener("message", (e) => {
+          args[1]({ data: e.data });
+        });
+        // return port.addEventListener(args[0], args[1]);
+      },
+      removeEventListener: (...args: any[]) => {
+        console.log("preload:removeEventListener", args);
+        // port.removeEventListener(args[0], args[1]);
+      },
+      start: port.start.bind(port),
     };
-    contextBridge.exposeInMainWorld("MESSAGE_PORT", portApi);
+    contextBridge.exposeInMainWorld("MESSAGE_PORT", exposedPort);
   });
 }
 

@@ -7,74 +7,21 @@ import {
   IPC_SERVICE_ENDPOINTS,
   IpcEventSend,
   IpcServiceServerApi,
+  MESSAGE_PORT_HANDSHAKE,
 } from "@-/common";
 import { tinyassert } from "@hiogawa/utils";
 import * as comlink from "comlink";
-import {
-  BrowserWindow,
-  Event,
-  MessageChannelMain,
-  app,
-  ipcMain,
-} from "electron";
+import { BrowserWindow, MessageChannelMain, app, ipcMain } from "electron";
 import { createApplicationMenu } from "./application-menu";
-import { COMLINK_CHANNEL } from "./common";
 import { addContextMenuHandler } from "./context-menu";
 import { CONFIG_PATH, PRELOAD_JS_PATH, RENDERER_URL } from "./types";
 
-function createMainEndpoint(
-  webContents: Electron.WebContents
-): comlink.Endpoint {
-  const listerWrappers = new WeakMap<object, any>();
-
-  return {
-    postMessage: (message: any, transfer?: Transferable[]) => {
-      tinyassert((transfer ?? []).length === 0);
-      webContents.postMessage(COMLINK_CHANNEL, message, []);
-      webContents.ipc;
-    },
-
-    addEventListener: (
-      type: string,
-      listener: EventListenerOrEventListenerObject,
-      _options?: {}
-    ) => {
-      tinyassert(type === "message");
-      const wrapper = (_event: Event, channel: string, ...args: any[]) => {
-        tinyassert(channel === COMLINK_CHANNEL);
-        const comlinkEvent = { data: args[0] } as MessageEvent;
-        if ("handleEvent" in listener) {
-          listener.handleEvent(comlinkEvent);
-        } else {
-          listener(comlinkEvent);
-        }
-      };
-      webContents.on("ipc-message", wrapper);
-      listerWrappers.set(listener, wrapper);
-    },
-
-    removeEventListener: (
-      type: string,
-      listener: EventListenerOrEventListenerObject,
-      _options?: {}
-    ) => {
-      tinyassert(type === "message");
-      const wrapper = listerWrappers.get(listener);
-      if (wrapper) {
-        webContents.off(COMLINK_CHANNEL, wrapper);
-        listerWrappers.delete(listener);
-      }
-    },
-  };
-}
-
-function createMainEndpointV2(
-  port: Electron.MessagePortMain
-): comlink.Endpoint {
+function createMainEndpoint(port: Electron.MessagePortMain): comlink.Endpoint {
   const listerWrappers = new WeakMap<object, any>();
   return {
     postMessage: (message: any, transfer?: Transferable[]) => {
       tinyassert((transfer ?? []).length === 0);
+      console.log("createMainEndpointV2.postMessage", { message });
       port.postMessage(message, []);
     },
 
@@ -84,6 +31,7 @@ function createMainEndpointV2(
       _options?: {}
     ) => {
       const wrapper = (event: Electron.MessageEvent) => {
+        console.log("createMainEndpointV2.addEventListener", { event });
         const comlinkEvent = { data: event.data } as MessageEvent;
         if ("handleEvent" in listener) {
           listener.handleEvent(comlinkEvent);
@@ -108,6 +56,8 @@ function createMainEndpointV2(
         listerWrappers.delete(listener);
       }
     },
+
+    start: () => port.start(),
   };
 }
 
@@ -124,29 +74,11 @@ export class MainApp {
   async start() {
     this.window = await createWindow();
     const webContents = this.window.webContents;
-    webContents.on("ipc-message", (event, channel, ...args) => {
-      console.log("======= ipc-message");
-      console.log(event, channel, args);
-    });
-    const messageChannel = new MessageChannelMain();
-    const { port1, port2 } = messageChannel;
-    comlink.expose(this, createMainEndpointV2(port1));
-    const CHANNEL_NAME = "MESSAGE_CHANNEL_HANDSHAKE";
-    webContents.postMessage(CHANNEL_NAME, null, [port2]);
-    webContents.on("ipc-message", (event, channel, ...args) => {
-      console.log({ event, args });
-      if (channel === "MESSAGE_CHANNEL_HANDSHAKE") {
-      }
-    });
-    port2.on("message", (event) => {
-      console.log({ event });
-    });
-    port2.start();
-    {
-      () => {
-        comlink.expose(this, createMainEndpoint(webContents));
-      };
-    }
+    const messageChannelMain = new MessageChannelMain();
+    comlink.expose(this, createMainEndpoint(messageChannelMain.port1));
+    webContents.postMessage(MESSAGE_PORT_HANDSHAKE, null, [
+      messageChannelMain.port2,
+    ]);
   }
 
   async getConfig(): Promise<Config> {
